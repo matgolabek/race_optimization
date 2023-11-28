@@ -6,7 +6,7 @@ import main
 
 
 # [p, A, o]
-class PartialIndividual:
+class PartialIndividual:    # Gen
 
     def __init__(self, pit: data.Pit, aggresssion: data.Aggression, compound: data.Compound):
         self.pit = pit
