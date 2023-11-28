@@ -1,6 +1,7 @@
 import data
 import random
 import Funkcja_celu
+import main
 # from typing import Self nie działa u mnie z jakiegoś powodu
 
 
@@ -22,7 +23,7 @@ class Individual:
     def __init__(self, N, list_of_laps):
         self.size = N
         self.list_of_laps = list_of_laps
-        self.fitness = Funkcja_celu.time_function(# arg ??? jaki tu t_stop????)
+        self.fitness = Funkcja_celu.time_function(main.j.t_pit)
 
     def __repr__(self):
         s = ""
@@ -37,8 +38,9 @@ class Individual:
 # populacja startowa
 class StartPopulation:
 
-    def __init__(self, size: int, N: int):
+    def __init__(self, size: int, c: data.Circuit):
 
+        N = c.no_laps
         self.size = size    # rozmiar populacji
         self.individuals = []   # lista osobników
         self.picked_parents = []    # lista rodziców wybieranych z osobników
@@ -76,9 +78,8 @@ class StartPopulation:
 # każda kolejna populacja (osobniki nie są już generowane losowo)
 class NextPopulation:
 
-    def __init__(self, size, individuals):
+    def __init__(self, individuals):
 
-        self.size = size
         self.individuals = individuals
         self.picked_parents = []
 
