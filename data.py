@@ -1,4 +1,4 @@
-from typing import List, Self
+from typing import List
 from enum import Enum
 from math import exp
 import pickle
@@ -24,7 +24,7 @@ class Aggression(Enum):  # Rodzaj agresywności
 
 
 class Tire:
-    def __init__(self, compound: Compound, max_laps: int, c: float, k: float, b: float, d: float) -> Self:
+    def __init__(self, compound: Compound, max_laps: int, c: float, k: float, b: float, d: float):
         """
         Opona
         :param compound: (Compound) : rodzaj mieszanki
@@ -50,7 +50,7 @@ class Tire:
         """
         Metoda zapisująca wykonane okrążenie opony z daną agresywnością
         :param aggression: (Aggression) : współczynnik agresywności na okrążeniu
-        :return: średnia szybkość jazdy na tym okrążeniu [m/s]
+        :return: (float) : średnia szybkość jazdy na tym okrążeniu [m/s]
         """
         self.n += 1
         self.aggression.append(aggression.name)
@@ -89,7 +89,7 @@ class Tire:
 
 
 class Circuit:
-    def __init__(self, name: str, track_dist: int, no_laps: int, t_pit: float, tires: List[Tire]) -> Self:
+    def __init__(self, name: str, track_dist: int, no_laps: int, t_pit: float, tires: List[Tire]):
         """
         Tor
         :param name: (str) : nazwa toru (miasto)
