@@ -2,7 +2,6 @@ import data
 import random
 import Funkcja_celu
 import main
-# from typing import Self nie działa u mnie z jakiegoś powodu
 
 
 # [p, A, o]
@@ -23,7 +22,7 @@ class Individual:
     def __init__(self, N, list_of_laps):
         self.size = N
         self.list_of_laps = list_of_laps
-        self.fitness = Funkcja_celu.time_function(main.j.t_pit)
+        self.fitness = Funkcja_celu.time_function(main.j)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
 
     def __repr__(self):
         s = ""
@@ -45,7 +44,7 @@ class StartPopulation:
         self.individuals = []   # lista osobników
         self.picked_parents = []    # lista rodziców wybieranych z osobników
 
-        self.new_individuals = []   # lista nowych osobników po krzyżowaniu i mutacji, z niej stworzona będzie nowa populacja
+        self.new_individuals = []   # lista nowych osobników; po krzyżowaniu i mutacji, z niej stworzona będzie nowa populacja
 
         # tworzenie losowych osobników
         # size*N*(p, A, o) -  size razy N krotek
@@ -63,19 +62,37 @@ class StartPopulation:
     def pick_parents(self, m: int, n: int):
         # m - liczba pozbiorów
         # n - liczba osobników w każdym podzbiorze
-        # 1. obliczenie funkcji celu dla każdego osobnika
+        # 1. obliczenie funkcji celu dla każdego osobnika - to jest już pole klasy Individual.fitness
         # 2. wyznaczenie m podzbiorów, n-elementowych
+        subsets = []
+        for _ in range(m):
+            subsets.append(random.sample(self.individuals, n))
         # 3. z każdego pozbioru wybór 1 elementu i wrzucenie go do picked_parents
-        pass
+        for subset in subsets:
+            self.picked_parents.append(max(subset, lambda x: x.fitness))    # wybierz najlepiej przystosowanego
+        # UWAGA - kod nie uwzględnia tego czy osobnik już wcześniej został wybrany do podzbioru
+        # więc może dojść do przypadku, że z podzbioru 1 i 2 zostanie wybrany ten sam rodzic
 
     def cross(self):
-        pass
+        # tutaj z picked_parents robi się new_individuals tylko jeszcze nw jak
+        self.picked_parents = self.new_individuals
 
     def mutate(self):
-        pass
+
+        for individual in self.new_individuals:
+            for gene in individual:
+                change = random.choices([False, True], [0.97, 0.03])[0]     # dla każdego genu oblicz czy ma wystąpić mutacja
+                if change:
+                    # jak tak to zmień agresję - na numer inny niż obecny gene.aggression
+                    aggressions = list(data.Aggression)
+                    aggressions.remove(gene.aggression)
+                    new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
+                    gene.aggression = new_aggression
+
 
 
 # każda kolejna populacja (osobniki nie są już generowane losowo)
+
 class NextPopulation:
 
     def __init__(self, individuals):
@@ -86,10 +103,24 @@ class NextPopulation:
         self.new_individuals = []
 
     def pick_parents(self, m: int, n: int):
-        pass
+
+        subsets = []
+        for _ in range(m):
+            subsets.append(random.sample(self.individuals, n))
+        for subset in subsets:
+            self.picked_parents.append(max(subset, lambda x: x.fitness))
 
     def cross(self):
         pass
 
     def mutate(self):
-        pass
+
+        for individual in self.new_individuals:
+            for gene in individual:
+                change = random.choices([False, True], [0.97, 0.03])[0]     # dla każdego genu oblicz czy ma wystąpić mutacja
+                if change:
+                    # jak tak to zmień agresję - na numer inny niż obecny gene.aggression
+                    aggressions = list(data.Aggression)
+                    aggressions.remove(gene.aggression)
+                    new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
+                    gene.aggression = new_aggression
