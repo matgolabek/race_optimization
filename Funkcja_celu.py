@@ -1,18 +1,24 @@
 from data import *
 import math
 
-def time_function(osobnik,S,t_pit) :
+def time_function(O,C) :
     f = 0
-    for n in range(0,len(osobnik)) : #osobnik: N*[p,A,o]
-        if osobnik[n][0] == 1:
-            new_tire =  Tire(osobnik[n][2])
-            f += (new_tire.lap_completed(osobnik[n][1])+velocity_e(n)+velocity_m(n))
-        else :
-            f += (new_tire.lap_completed(osobnik[n][1])+velocity_e(n)+velocity_m(n))
+    for n in range(O.N) : #osobnik: N*[p,A,o]
+        if (n>0 and O.list_of_laps[n][2]!=O.list_of_laps[n-1][2]) or O.list_of_laps[n][0]==1:
+            if O.list_of_laps[n][2]== 1:
+                pass
+            elif O.list_of_laps[n][2]== 2:
+                pass
+            else:
+                pass
 
-    f = f/len(osobnik)
-    f = S/f
-    f = f+t_pit
+            f += (new_tire.lap_completed(O.list_of_laps[n][1])+velocity_e(n)+velocity_m(n))
+        else :
+            f += (new_tire.lap_completed(O.list_of_laps[n][1])+velocity_e(n)+velocity_m(n))
+
+    f = f/O.N
+    f = C.track_dist/f
+    f = f+C.t_pit
     return f
 
 def velocity_m(n):
