@@ -1,13 +1,13 @@
-import data
+from data import *
 import random
-import Funkcja_celu
+from Funkcja_celu import *
 import main
 
 
 # [p, A, o]
 class PartialIndividual:    # Gen
 
-    def __init__(self, pit: data.Pit, aggresssion: data.Aggression, compound: data.Compound):
+    def __init__(self, pit: Pit, aggresssion: Aggression, compound: Compound):
         self.pit = pit
         self.aggression = aggresssion
         self.compound = compound
@@ -22,7 +22,7 @@ class Individual:
     def __init__(self, N, list_of_laps):
         self.size = N
         self.list_of_laps = list_of_laps
-        self.fitness = Funkcja_celu.time_function(main.j)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
+        self.fitness = time_function(main.j)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
 
     def __repr__(self):
         s = ""
@@ -37,7 +37,7 @@ class Individual:
 # populacja startowa
 class StartPopulation:
 
-    def __init__(self, size: int, c: data.Circuit):
+    def __init__(self, size: int, c: Circuit):
 
         N = c.no_laps
         self.size = size    # rozmiar populacji
@@ -51,9 +51,9 @@ class StartPopulation:
         for i in range(size):
             list_of_laps = []     # każdy osobnik to N-elementowa lista krotek
             for lap in range(N):    # N okrążeń w każdym osobniku
-                pit = random.choices(list(data.Pit), weights=[0.1, 0.9])[0]  # PIT=YES z p=0.9
-                aggression = random.choice(list(data.Aggression))
-                compound = random.choice(list(data.Compound))   # agresja oraz rodzaj mieszanki są wybierane po prostu losowo
+                pit = random.choices(list(Pit), weights=[0.1, 0.9])[0]  # PIT=YES z p=0.9
+                aggression = random.choice(list(Aggression))
+                compound = random.choice(list(Compound))   # agresja oraz rodzaj mieszanki są wybierane po prostu losowo
                 partial_ind = PartialIndividual(pit, aggression, compound)  # okrążenie (1/N-ta część osobnika)
                 list_of_laps.append(partial_ind)    # wszystkie okrążenia zbierane do listy
             individual = Individual(N, list_of_laps)  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
@@ -84,7 +84,7 @@ class StartPopulation:
                 change = random.choices([False, True], [0.97, 0.03])[0]     # dla każdego genu oblicz czy ma wystąpić mutacja
                 if change:
                     # jak tak to zmień agresję - na numer inny niż obecny gene.aggression
-                    aggressions = list(data.Aggression)
+                    aggressions = list(Aggression)
                     aggressions.remove(gene.aggression)
                     new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                     gene.aggression = new_aggression
@@ -120,7 +120,7 @@ class NextPopulation:
                 change = random.choices([False, True], [0.97, 0.03])[0]     # dla każdego genu oblicz czy ma wystąpić mutacja
                 if change:
                     # jak tak to zmień agresję - na numer inny niż obecny gene.aggression
-                    aggressions = list(data.Aggression)
+                    aggressions = list(Aggression)
                     aggressions.remove(gene.aggression)
                     new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                     gene.aggression = new_aggression
