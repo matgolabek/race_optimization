@@ -59,7 +59,7 @@ class StartPopulation:
             individual = Individual(N, list_of_laps)  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
             self.individuals.append(individual)  # na koniec powstały osobnik jest dodawany do listy wszystkich osobników
 
-    def pick_parents(self, m: int, n: int):
+    def pick_parents(self, m: int, n: int):     # ważne, żeby m było parzystą liczbą
         # m - liczba pozbiorów
         # n - liczba osobników w każdym podzbiorze
         # 1. obliczenie funkcji celu dla każdego osobnika - to jest już pole klasy Individual.fitness
@@ -74,8 +74,23 @@ class StartPopulation:
         # więc może dojść do przypadku, że z podzbioru 1 i 2 zostanie wybrany ten sam rodzic
 
     def cross(self):
-        # tutaj z picked_parents robi się new_individuals tylko jeszcze nw jak
-        self.picked_parents = self.new_individuals
+
+        while self.picked_parents:
+
+            # losowy wybrani rodzice z listy
+            inx = random.randint(0, len(self.picked_parents) - 1)
+            parent1 = self.picked_parents.pop(inx)
+            inx = random.randint(0, len(self.picked_parents) - 1)
+            parent2 = self.picked_parents.pop(0)
+
+            # krzyżowanie
+            midpoint = parent1.size // 2
+            child1 = parent1[:midpoint] + parent2[midpoint:]
+            child2 = parent2[:midpoint] + parent3[midpoint:]
+
+            # dzieci idą do new_ind
+            self.new_individuals.append(child1)
+            self.new_individuals.append(child2)
 
     def mutate(self):
 
@@ -88,7 +103,6 @@ class StartPopulation:
                     aggressions.remove(gene.aggression)
                     new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                     gene.aggression = new_aggression
-
 
 
 # każda kolejna populacja (osobniki nie są już generowane losowo)
@@ -111,7 +125,20 @@ class NextPopulation:
             self.picked_parents.append(max(subset, lambda x: x.fitness))
 
     def cross(self):
-        pass
+
+        while self.picked_parents:
+
+            inx = random.randint(0, len(self.picked_parents) - 1)
+            parent1 = self.picked_parents.pop(inx)
+            inx = random.randint(0, len(self.picked_parents) - 1)
+            parent2 = self.picked_parents.pop(0)
+
+            midpoint = parent1.size // 2
+            child1 = parent1[:midpoint] + parent2[midpoint:]
+            child2 = parent2[:midpoint] + parent3[midpoint:]
+
+            self.new_individuals.append(child1)
+            self.new_individuals.append(child2)
 
     def mutate(self):
 
