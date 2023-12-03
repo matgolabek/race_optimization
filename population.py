@@ -104,6 +104,14 @@ class StartPopulation:
                     new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                     gene.aggression = new_aggression
 
+    def shuffle_population(self):
+
+        # połącz new_individuals z individuals
+        # nw czy to będzie ok, ale żeby np. jak populacja bazowa ma rozmiar x (ind) a new_ind ma rozmiar y, to żeby z ind dobrać k najlepszych osobników, żeby y+k=x
+
+        while len(self.new_individuals != self.individuals):
+            self.new_individuals.append(max(self.individuals, lambda x: x.fitness))     # jeśli to doprowadzi do super osobnikow to ofc dodac to jakas losowosc
+
 
 # każda kolejna populacja (osobniki nie są już generowane losowo)
 
@@ -119,8 +127,10 @@ class NextPopulation:
     def pick_parents(self, m: int, n: int):
 
         subsets = []
+
         for _ in range(m):
             subsets.append(random.sample(self.individuals, n))
+
         for subset in subsets:
             self.picked_parents.append(max(subset, lambda x: x.fitness))
 
@@ -143,11 +153,17 @@ class NextPopulation:
     def mutate(self):
 
         for individual in self.new_individuals:
+
             for gene in individual:
-                change = random.choices([False, True], [0.97, 0.03])[0]     # dla każdego genu oblicz czy ma wystąpić mutacja
+                change = random.choices([False, True], [0.97, 0.03])[0]
+
                 if change:
-                    # jak tak to zmień agresję - na numer inny niż obecny gene.aggression
                     aggressions = list(Aggression)
                     aggressions.remove(gene.aggression)
                     new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                     gene.aggression = new_aggression
+
+    def shuffle_population(self):
+
+        while len(self.new_individuals != self.individuals):
+            self.new_individuals.append(max(self.individuals, lambda x: x.fitness))

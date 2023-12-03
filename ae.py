@@ -19,7 +19,11 @@ def evolutionary_algorith(start_size, Circuit, max_iter, number_of_parents, num_
         P_prev.cross()     # krzyżowanie
         P_prev.mutate()    # mutacja
 
-        P_next = NextPopulation(P_prev)
+        # jeszcze pytanie czy nowa populacja jest tworzona tylko z new_individuals czy z new_individual i (old_)individuals
+        # i chyba ta druga opcja jest lepsza, bo jeśli byłaby tylko z krzyżowanych rodziców to by się te nowsze populacje cały czas zmniejszały
+        P_prev.shuffle_population()
+
+        P_next = NextPopulation(P_prev.new_individuals)
 
         P_prev = P_next
 
