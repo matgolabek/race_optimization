@@ -109,6 +109,29 @@ class Circuit:
                + 'No. laps: {}\n'.format(self.no_laps) + 'Pit stop time: {} s\n'.format(self.t_pit)\
                + 'Available tires: {}'.format(self.tires)
 
+    def get_tires(self) -> List[List[Tire]]:
+        """
+        Metoda zwracająca posortowane komplety opon.
+        Pod indeksem 0: lista opon miękkich
+        Pod indeksem 1: lista opon pośrednich
+        Pod indeksem 2: lista opon twardych
+        :return: (List[List[Tire]]) : lista list posortowanych malejąca wg wieku opon, w kolejności: S, M, H
+        """
+        soft_tires = []
+        medium_tires = []
+        hard_tires = []
+        for tire in self.tires:  # dodanie opon do odpowiednych list
+            if tire.compound == Compound.SOFT:
+                soft_tires.append(tire)
+            elif tire.compound == Compound.MEDIUM:
+                medium_tires.append(tire)
+            elif tire.compound == Compound.HARD:
+                hard_tires.append(tire)
+        soft_tires.sort(key=lambda x: x.n)  # sortowanie list wg wieku
+        medium_tires.sort(key=lambda x: x.n)
+        hard_tires.sort(key=lambda x: x.n)
+        return [soft_tires, medium_tires, hard_tires]
+
 
 def write_data(circuit: Circuit) -> None:
     """
