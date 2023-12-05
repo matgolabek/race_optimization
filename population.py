@@ -145,7 +145,7 @@ class NextPopulation:
 
             midpoint = parent1.size // 2
             child1 = parent1[:midpoint] + parent2[midpoint:]
-            child2 = parent2[:midpoint] + parent3[midpoint:]
+            child2 = parent2[:midpoint] + parent1[midpoint:]
 
             self.new_individuals.append(child1)
             self.new_individuals.append(child2)
