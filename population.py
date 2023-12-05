@@ -1,6 +1,6 @@
 from data import *
 import random
-from Funkcja_celu import *
+from objective_function import *
 import main
 
 
@@ -22,7 +22,7 @@ class Individual:
     def __init__(self, N, list_of_laps):
         self.size = N
         self.list_of_laps = list_of_laps
-        self.fitness = time_function(main.j)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
+        self.fitness = time_function(list_of_laps,main.j)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
 
     def __repr__(self):
         s = ""
@@ -86,7 +86,7 @@ class StartPopulation:
             # krzyżowanie
             midpoint = parent1.size // 2
             child1 = parent1[:midpoint] + parent2[midpoint:]
-            child2 = parent2[:midpoint] + parent3[midpoint:]
+            child2 = parent2[:midpoint] + parent1[midpoint:]
 
             # dzieci idą do new_ind
             self.new_individuals.append(child1)
