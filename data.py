@@ -10,17 +10,17 @@ class Pit(Enum):  # Rodzaje wykonania pit stopu
 
 
 class Compound(Enum):  # Rodzaje mieszanki
-    SOFT = 1
-    MEDIUM = 2
-    HARD = 3
+    SOFT = 0
+    MEDIUM = 1
+    HARD = 2
 
 
 class Aggression(Enum):  # Rodzaj agresywności
-    TIRES_MANAGING = 1
-    EASY = 2
-    NORMAL = 3
-    PUSH = 4
-    HARD_PUSH = 5
+    TIRES_MANAGING = 0
+    EASY = 1
+    NORMAL = 2
+    PUSH = 3
+    HARD_PUSH = 4
 
 
 class Tire:
