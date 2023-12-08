@@ -1,5 +1,6 @@
 from data import *
 import sys
+from population import *
 from typing import List
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, \
     QFileDialog, QComboBox, QTableWidget, QTableWidgetItem, QTabWidget, QLabel, QPushButton, QDialog, QDialogButtonBox
@@ -35,6 +36,9 @@ def main():
     app = QApplication(sys.argv)
 
     window = MainWindow()
+    example = StartPopulation(50,window.circuit)
+    print(example.individuals[1])
+
     window.show()
 
     try:

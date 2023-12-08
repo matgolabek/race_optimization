@@ -19,10 +19,10 @@ class PartialIndividual:    # Gen
 # N * [p, A, o]
 class Individual:
 
-    def __init__(self, N, list_of_laps):
+    def __init__(self, N, list_of_laps,c:Circuit):
         self.size = N
         self.list_of_laps = list_of_laps
-        self.fitness = time_function(list_of_laps,main.j)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
+        self.fitness = time_function(list_of_laps,c)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
 
     def __repr__(self):
         s = ""
@@ -31,6 +31,8 @@ class Individual:
             s += ": "
             s += str(self.list_of_laps[i])
             s += "\n"
+        s += str(self.fitness)
+        s += " [s] \n"
         return s
 
 
@@ -56,7 +58,7 @@ class StartPopulation:
                 compound = random.choice(list(Compound))   # agresja oraz rodzaj mieszanki są wybierane po prostu losowo
                 partial_ind = PartialIndividual(pit, aggression, compound)  # okrążenie (1/N-ta część osobnika)
                 list_of_laps.append(partial_ind)    # wszystkie okrążenia zbierane do listy
-            individual = Individual(N, list_of_laps)  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
+            individual = Individual(N, list_of_laps,c)  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
             self.individuals.append(individual)  # na koniec powstały osobnik jest dodawany do listy wszystkich osobników
 
     def pick_parents(self, m: int, n: int):     # ważne, żeby m było parzystą liczbą
