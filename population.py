@@ -145,9 +145,9 @@ class NextPopulation:
             inx = random.randint(0, len(self.picked_parents) - 1)
             parent2 = self.picked_parents.pop(0)
 
-            midpoint = parent1.size // 2
-            child1 = parent1[:midpoint] + parent2[midpoint:]
-            child2 = parent2[:midpoint] + parent1[midpoint:]
+            split_point = random.randint(0, parent1.size)   # losowy punkt krzyżowania zamiast środkowego
+            child1 = parent1[:split_point] + parent2[split_point:]
+            child2 = parent2[:split_point] + parent1[split_point:]
 
             self.new_individuals.append(child1)
             self.new_individuals.append(child2)
