@@ -1,3 +1,4 @@
+import random
 from population import *
 from typing import Union
 
@@ -143,12 +144,39 @@ def pick_parents_roulette(population: Union[NextPopulation, StartPopulation], m:
     :param equal_chances: (bool) : czy prawdopodobieństwo wyboru równe
     :return: None
     """
+    if equal_chances:
+        for _ in range(m):
+            random_idx = random.randint(0, len(population.individuals))
+            population.picked_parents.append(population.individuals.pop(random_idx))
+    else:
+        sum_fitness = 0
+        for individual in population.individuals:
+            sum_fitness += individual.fitness
+
+        for _ in range(m):
+            random_value = sum_fitness * random.random()
+            fitness_counter = 0
+            idx = -1
+            while fitness_counter < random_value:
+                idx += 1
+                fitness_counter = population.individuals[idx].fitness
+            picked_individual = population.individuals.pop(idx)
+            sum_fitness -= picked_individual.fitness
+            population.picked_parents.append(picked_individual)
 
 
-    ##### TO_DO
-    sum_fitness = 0
-    for individual in population.individuals:
-        sum_fitness += individual.fitness
-
-    for _ in range(m):
-        population.picked_parents.append()
+def adjust_population(population: Union[NextPopulation, StartPopulation], best_ancestors: bool = False) -> None:
+    """
+    Funkcja uzupełniająca rozmiar populacji
+    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param best_ancestors: (bool) : dobieranie od najlpeszych przodków lub losowo
+    :return: None
+    """
+    if best_ancestors:
+        while len(population.new_individuals) != len(population.individuals):
+            ancestors = sorted(population.individuals, key=lambda x: x.fitness, reverse=True)
+            population.new_individuals.append(ancestors.pop(0))
+    else:
+        while len(population.new_individuals) != len(population.individuals):
+            random_idx = random.randint(0, len(population.individuals))
+            population.new_individuals.append(population.individuals.pop(random_idx))
