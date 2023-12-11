@@ -173,7 +173,7 @@ def adjust_population(population: Union[NextPopulation, StartPopulation], best_a
     :param elitist : krótka lista osobników, które jeszcze przed selekcją dostały passa do następnej populacji (domyślnie pusta), funkcja wybierająca te osobniki jest dosłownie pod tą
     :return: None
     """
-    ####
+    #### tutaj w tej funkcji dopisałam tylko ten warunek a tak to zostawiłam bez zmian
     if elitist:
         if len(population.new_individuals) + len(elitist) <= len(population.individuals):
             # jeśli rozmiar nowej populacji połączonej z wybranymi najlepszymi nie przekracza wielkości poprzedniej to można je spokojnie połączyć
@@ -182,7 +182,7 @@ def adjust_population(population: Union[NextPopulation, StartPopulation], best_a
         else:
             while len(population.new_individuals) + len(elitist) > len(population.individuals):
                 # jeśli rozmiar populacji okazał się za duży (większy niż poprzednia) to usunięte zostają losowe nowe elementy z nowej populacji, żeby zrobić miejsce dla najlepszych
-                # ale możliwe, że taki przypadek tak naprawdę nigdy nie wystąpi? 
+                # ale możliwe, że taki przypadek tak naprawdę nigdy nie wystąpi?
                 random_inx = random.randint(0, len(population.new_individuals)-1)
                 popualation.new_individuals.remove(random_inx)
     ####
@@ -219,3 +219,28 @@ def elitist_selection(population: Union[StartPopulation, NextPopulation], n=5: i
         return best individuals
     else:
         return None
+
+
+def cross_2_points(population: Union[StartPopulation, NextPopulation]) -> None:
+    """
+    2 losowe punkty krzyżowania
+    :param population:
+    :return: None
+    """
+
+    while population.picked_parents:
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent1 = population.picked_parents.pop(inx)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
+
+        point1 = random.radint(0, len(parent1))
+        point2 = random.choice([i for in range(len(parent1)) if i != point1])
+        point3 = random.choice([i for in range(len(parent1)) if i != point1 and i != point2])
+
+
+        child1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
+        child2 = parent2[:point1] + parent1[point1:point2] + parent2[point2:]
+
+        population.new_individuals.append(child1)
+        population.new_individuals.append(child2)
