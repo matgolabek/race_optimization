@@ -165,13 +165,28 @@ def pick_parents_roulette(population: Union[NextPopulation, StartPopulation], m:
             population.picked_parents.append(picked_individual)
 
 
-def adjust_population(population: Union[NextPopulation, StartPopulation], best_ancestors: bool = False) -> None:
+def adjust_population(population: Union[NextPopulation, StartPopulation], best_ancestors: bool = False, elitist: List[Individual] = []) -> None:
     """
     Funkcja uzupełniająca rozmiar populacji
     :param population: (Union[NextPopulation, StartPopulation]) : populacja
     :param best_ancestors: (bool) : dobieranie od najlpeszych przodków lub losowo
+    :param elitist : krótka lista osobników, które jeszcze przed selekcją dostały passa do następnej populacji (domyślnie pusta), funkcja wybierająca te osobniki jest dosłownie pod tą
     :return: None
     """
+    ####
+    if elitist:
+        if len(population.new_individuals) + len(elitist) <= len(population.individuals):
+            # jeśli rozmiar nowej populacji połączonej z wybranymi najlepszymi nie przekracza wielkości poprzedniej to można je spokojnie połączyć
+            for ind in elitist:
+                population.new_individuals.append(ind)
+        else:
+            while len(population.new_individuals) + len(elitist) > len(population.individuals):
+                # jeśli rozmiar populacji okazał się za duży (większy niż poprzednia) to usunięte zostają losowe nowe elementy z nowej populacji, żeby zrobić miejsce dla najlepszych
+                # ale możliwe, że taki przypadek tak naprawdę nigdy nie wystąpi? 
+                random_inx = random.randint(0, len(population.new_individuals)-1)
+                popualation.new_individuals.remove(random_inx)
+    ####
+
     if best_ancestors:
         while len(population.new_individuals) != len(population.individuals):
             ancestors = sorted(population.individuals, key=lambda x: x.fitness, reverse=True)
@@ -213,3 +228,25 @@ def cross_agression(population: Union[NextPopulation, StartPopulation], random_d
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
+##################
+
+def elitist_selection(population: Union[StartPopulation, NextPopulation], n=5: int) -> List[Individual]:
+    """
+    Wybranie jakiejś małej grupy osobników, która przechodzi od razu do następnej populacji, czyli
+    1. wybór tych kilku najlepszych
+    2. jeśli faktycznie zostały takie wybrane to przed selekcją rodziców są one usuwane z populacji, żeby potem nie mogły brać udziału w selekcji
+
+    :param population: populacja prztwarzana w i-tej iteracji
+    :param n: liczba najlepszych osobników, którą chcemy zachować (domyślnie 5 czyli przy 50 to będzie 1%)
+    :return: lista najlepszych osobników
+    """
+
+    best_individuals = sorted(population.individuals, key=lambda x: x.fitness, reverse=True)[:n]    # wybór n-najlepszych
+
+    for ind in best_individuals:
+        population.individuals.remove(ind)
+
+    if best_indivuals:
+        return best individuals
+    else:
+        return None
