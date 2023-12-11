@@ -180,3 +180,36 @@ def adjust_population(population: Union[NextPopulation, StartPopulation], best_a
         while len(population.new_individuals) != len(population.individuals):
             random_idx = random.randint(0, len(population.individuals))
             population.new_individuals.append(population.individuals.pop(random_idx))
+
+
+def cross_agression(population: Union[NextPopulation, StartPopulation], random_division_point: bool = False) -> None:
+    """
+    Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
+    :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
+    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :return: None
+    """
+    while population.picked_parents:
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent1 = population.picked_parents.pop(inx)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
+
+        if random_division_point:
+            midpoint = int(parent1.size * random.random())
+        else:
+            midpoint = parent1.size // 2
+
+        child1 = parent1[:midpoint] + parent2[midpoint:]
+        child2 = parent2[:midpoint] + parent1[midpoint:]
+
+        for i in range(midpoint):
+            child1.list_of_laps[i].aggression = parent1.list_of_laps[i].aggression
+            child2.list_of_laps[i].aggression = parent2.list_of_laps[i].aggression
+
+        for i in range(midpoint,parent1.size):
+            child1.list_of_laps[i].aggression = parent2.list_of_laps[i].aggression
+            child2.list_of_laps[i].aggression = parent1.list_of_laps[i].aggression            
+
+        population.new_individuals.append(child1)
+        population.new_individuals.append(child2)
