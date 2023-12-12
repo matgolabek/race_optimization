@@ -5,9 +5,9 @@ from typing import Union
 
 def mutate_aggression(population: Union[NextPopulation, StartPopulation], probability: float = 0.03) -> None:
     """
-    Mutacja tylko agresji z zadanym prawdpopodbieństwem (domyślnie 0.05)
-    :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
+    Mutacja tylko agresji z zadanym prawdopodobieństwem (domyślnie 0.05)
     :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
     :return: None
     """
     if probability <= 0 or probability >= 1:
@@ -184,7 +184,7 @@ def adjust_population(population: Union[NextPopulation, StartPopulation], best_a
                 # jeśli rozmiar populacji okazał się za duży (większy niż poprzednia) to usunięte zostają losowe nowe elementy z nowej populacji, żeby zrobić miejsce dla najlepszych
                 # ale możliwe, że taki przypadek tak naprawdę nigdy nie wystąpi?
                 random_inx = random.randint(0, len(population.new_individuals)-1)
-                popualation.new_individuals.remove(random_inx)
+                population.new_individuals.remove(random_inx)
     ####
 
     if best_ancestors:
@@ -230,7 +230,7 @@ def cross_agression(population: Union[NextPopulation, StartPopulation], random_d
         population.new_individuals.append(child2)
 ##################
 
-def elitist_selection(population: Union[StartPopulation, NextPopulation], n=5: int) -> List[Individual]:
+def elitist_selection(population: Union[StartPopulation, NextPopulation], n: int = 5) -> List[Individual]:
     """
     Wybranie jakiejś małej grupy osobników, która przechodzi od razu do następnej populacji, czyli
     1. wybór tych kilku najlepszych
@@ -246,8 +246,8 @@ def elitist_selection(population: Union[StartPopulation, NextPopulation], n=5: i
     for ind in best_individuals:
         population.individuals.remove(ind)
 
-    if best_indivuals:
-        return best individuals
+    if best_individuals:
+        return best_individuals
     else:
         return None
 
@@ -266,8 +266,8 @@ def cross_2_points(population: Union[StartPopulation, NextPopulation]) -> None:
         parent2 = population.picked_parents.pop(inx)
 
         point1 = random.radint(0, len(parent1))
-        point2 = random.choice([i for in range(len(parent1)) if i != point1])
-        point3 = random.choice([i for in range(len(parent1)) if i != point1 and i != point2])
+        point2 = random.choice([i for i in range(len(parent1)) if i != point1])
+        point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
 
 
         child1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
