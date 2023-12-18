@@ -8,5 +8,9 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt, pyqtSlot
 
 
+def main():
+    pass
+
+
 if __name__ == '__main__':
     main()
