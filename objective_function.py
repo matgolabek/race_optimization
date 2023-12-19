@@ -9,7 +9,9 @@ def time_function(list_of_laps ,circuit):
     """
     k_pit = 0 #licznik pitstopów
     f = 0 #czas
+     
     for n in range(circuit.no_laps) : #osobnik: N*[p,A,o]
+        
         tires = circuit.get_tires() #pobranie posortowanej liczby opon
 
         if (n>0 and list_of_laps[n].compound!=list_of_laps[n-1].compound) or list_of_laps[n].pit==1 or n==0: #czy nastąpił pitstop lub zmiana opony 
@@ -39,13 +41,15 @@ def time_function(list_of_laps ,circuit):
 
         else : 
             f += (new_tire.lap_completed(list_of_laps[n].aggression)+velocity_e(n)+velocity_m(n)) #dodanie prędkości na n-tym okrążeniu
-
+        
     if k_pit==0: #czy wystąpił przynajmniej jeden pitstop
         return math.inf
 
     f = f/circuit.no_laps #średnia prędkości na jedno okrążenie
     f = circuit.track_dist/f # długosc jednego okrążenia podzielona przez średnią prędkość na jedno okrążenie
+    f = circuit.no_laps*f #czas przejazdu wszystkich okrążeń
     f = f+circuit.t_pit*k_pit #dodanie czasów pitstopów
+    f = f/60 # przeskalowanie na minuty
     return f
 
 def velocity_m(n):
