@@ -63,31 +63,56 @@ class Config(QWidget):
 
         layout_main = QHBoxLayout()  # układ główny
         box_circuit = QGroupBox('Dane wyścigu')  # układ z danymi wyścigu
-        label_circuit = QFormLayout()
+        layout_circuit = QFormLayout()
         box_config = QGroupBox('Parametry algorytmu')  # układ z konfiguracją algorytmu
-        label_config = QVBoxLayout()
+        layout_config = QVBoxLayout()
 
         layout_main.setContentsMargins(20, 20, 20, 20)  # wielkość ramki
         layout_main.setSpacing(20)  # odległości między widżetami
 
-        label_circuit.addRow('Nazwa:', QLineEdit(self.parent.circuit_name, self))
+        layout_circuit.addRow('Nazwa:', QLineEdit(self.parent.circuit_name, self))
         spin_no_laps = QSpinBox(self)
         spin_no_laps.setValue(self.parent.circuit_no_laps)
-        label_circuit.addRow('Liczba okrążeń:', spin_no_laps)
+        layout_circuit.addRow('Liczba okrążeń:', spin_no_laps)
         spin_track_dist = QSpinBox(self)
         spin_track_dist.setValue(self.parent.circuit_track_distance)
-        label_circuit.addRow('Długość toru [m]:', spin_track_dist)
+        layout_circuit.addRow('Długość toru [m]:', spin_track_dist)
         spin_t_pit = QDoubleSpinBox(self)
         spin_t_pit.setValue(self.parent.circuit_t_pit)
         spin_t_pit.setDecimals(3)
-        label_circuit.addRow('Czas pit stopu [s]:', spin_t_pit)
+        layout_circuit.addRow('Czas pit stopu [s]:', spin_t_pit)
+
+        # layout_config - przyciski
+        button_read = QPushButton("Wczytaj dane z pliku")   # wczytywanie z pliku
+        button_read.setFixedSize(200, 50)
+        button_read.clicked.connect(self.choose_file)
+
+        button_write = QPushButton("Zapisz wprowadzone dane")   # zapisywanie do pliku
+        button_write.setFixedSize(200, 50)
+
+        layout_config.addWidget(button_read)    # dodanie prrzycisków do layoutu
+        layout_config.addWidget(button_write)
 
         # USTAWIENIA UKŁADU
-        box_circuit.setLayout(label_circuit)
-        box_config.setLayout(label_config)
+        box_circuit.setLayout(layout_circuit)
+        box_config.setLayout(layout_config)
         layout_main.addWidget(box_circuit)
         layout_main.addWidget(box_config)
         self.setLayout(layout_main)
+
+    @pyqtSlot()
+    def choose_file(self) -> None:
+        """
+        Wybranie pliku z danymi
+        :return: None
+        """
+        file_name = QFileDialog.getOpenFileName(self, filter="*.pkl")[0]  # nazwa pliku
+        circuit = load_data(file_name)
+        self.parent.circuit_name = circuit.name
+        self.parent.circuit_track_distance = circuit.track_dist
+        self.parent.circuit_no_laps = circuit.no_laps
+        self.parent.circuit_t_pit = circuit.t_pit
+        self.parent.circuit_tires = circuit.tires
 
 
 class Solution(QWidget):
@@ -123,8 +148,6 @@ class Chart(QWidget):
         # USTAWIENIA UKŁADU
         self.setLayout(layout_main)
 
-
-"""
 def main():
     app = QApplication(sys.argv)
 
@@ -140,4 +163,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-"""
