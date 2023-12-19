@@ -85,7 +85,7 @@ class Config(QWidget):
         # layout_config - przyciski
         button_read = QPushButton("Wczytaj dane z pliku")   # wczytywanie z pliku
         button_read.setFixedSize(200, 50)
-        #button_read.clicked.connect()
+        button_read.clicked.connect(self.choose_file)
 
         button_write = QPushButton("Zapisz wprowadzone dane")   # zapisywanie do pliku
         button_write.setFixedSize(200, 50)
@@ -108,7 +108,11 @@ class Config(QWidget):
         """
         file_name = QFileDialog.getOpenFileName(self, filter="*.pkl")[0]  # nazwa pliku
         circuit = load_data(file_name)
+        self.parent.circuit_name = circuit.name
+        self.parent.circuit_track_distance = circuit.track_dist
+        self.parent.circuit_no_laps = circuit.no_laps
         self.parent.circuit_t_pit = circuit.t_pit
+        self.parent.circuit_tires = circuit.tires
 
 
 class Solution(QWidget):
