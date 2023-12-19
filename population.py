@@ -32,7 +32,7 @@ class Individual:
             s += str(self.list_of_laps[i])
             s += "\n"
         s += str(self.fitness)
-        s += " [s] \n"
+        s += " [min] \n"
         return s
 
 
@@ -53,9 +53,10 @@ class StartPopulation:
         for i in range(size):
             list_of_laps = []     # każdy osobnik to N-elementowa lista krotek
             for lap in range(N):    # N okrążeń w każdym osobniku
-                pit = random.choices(list(Pit), weights=[0.1, 0.9])[0]  # PIT=YES z p=0.9
-                aggression = random.choice(list(Aggression))
-                compound = random.choice(list(Compound))   # agresja oraz rodzaj mieszanki są wybierane po prostu losowo
+                pit = random.choices(list(Pit), weights=[0.84, 0.16])[0]  # PIT=YES z p=0.9
+                aggression = random.choice(list(Aggression)) # agresja wybierana jest losowo      
+                if lap==0 or pit==Pit.YES:
+                    compound = random.choice(list(Compound))   # rodzaj mieszanki ustalany, gdy wystąpi pitstop i nie zmienia sie do kolejnego pitstopu  
                 partial_ind = PartialIndividual(pit, aggression, compound)  # okrążenie (1/N-ta część osobnika)
                 list_of_laps.append(partial_ind)    # wszystkie okrążenia zbierane do listy
             individual = Individual(N, list_of_laps,c)  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
