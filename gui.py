@@ -82,10 +82,16 @@ class Config(QWidget):
         spin_t_pit.setDecimals(3)
         layout_circuit.addRow('Czas pit stopu [s]:', spin_t_pit)
 
-        button_choose_file = QPushButton(self)  # przycisk otwierający dialog wyboru
-        button_choose_file.setText("Załaduj dane")  # nazwa przycisku
-        button_choose_file.clicked.connect(self.choose_file)
-        layout_config.addWidget(button_choose_file)
+        # layout_config - przyciski
+        button_read = QPushButton("Wczytaj dane z pliku")   # wczytywanie z pliku
+        button_read.setFixedSize(200, 50)
+        #button_read.clicked.connect()
+
+        button_write = QPushButton("Zapisz wprowadzone dane")   # zapisywanie do pliku
+        button_write.setFixedSize(200, 50)
+
+        layout_config.addWidget(button_read)    # dodanie prrzycisków do layoutu
+        layout_config.addWidget(button_write)
 
         # USTAWIENIA UKŁADU
         box_circuit.setLayout(layout_circuit)
@@ -137,7 +143,6 @@ class Chart(QWidget):
 
         # USTAWIENIA UKŁADU
         self.setLayout(layout_main)
-
 
 def main():
     app = QApplication(sys.argv)
