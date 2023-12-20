@@ -16,13 +16,13 @@ def time_function(list_of_laps ,circuit):
 
         if (n>0 and list_of_laps[n].compound!=list_of_laps[n-1].compound) or list_of_laps[n].pit==1 or n==0: #czy nastąpił pitstop lub zmiana opony 
             k_pit += 1
-            if list_of_laps[n].compound== Compound.SOFT.value: #zmiana na mieszankę miękką
+            if list_of_laps[n].compound.value== Compound.SOFT.value: #zmiana na mieszankę miękką
                 if len(tires[Compound.SOFT.value])==0: #czy zostały jeszcze miękkie opony
                     return math.inf
 
                 new_tire = tires[Compound.SOFT.value].pop(0) #pobranie nowej opony
 
-            elif list_of_laps[n].compound== Compound.MEDIUM.value: #zmiana na mieszankę pośrednią
+            elif list_of_laps[n].compound.value== Compound.MEDIUM.value: #zmiana na mieszankę pośrednią
                 if len(tires[Compound.MEDIUM.value])==0: #czy zostały jeszcze miękkie opony
                     return math.inf
                 
