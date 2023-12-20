@@ -44,7 +44,10 @@ class Tire:
         self.aggression = []  # agresja na okrążeniu
 
     def __repr__(self) -> str:
-        return '{} laps on {} tires ({})\n'.format(self.n, self.compound.name, self.aggression)
+        if self.n < self.max_laps:
+            return '{} laps on {} tires ({})\n'.format(self.n, self.compound.name, self.aggression)
+        else:
+            return 'DAMAGED {} tires after {} laps ({})\n'.format(self.compound.name, self.n - 1, self.aggression[:-1])
 
     def lap_completed(self, aggression: Aggression) -> float:
         """
@@ -52,8 +55,9 @@ class Tire:
         :param aggression: (Aggression) : współczynnik agresywności na okrążeniu
         :return: (float) : średnia szybkość jazdy na tym okrążeniu [m/s]
         """
-        self.n += 1
-        self.aggression.append(aggression.name)
+        if self.n < self.max_laps:
+            self.n += 1
+            self.aggression.append(aggression.name)
         c = self.c
         k = self.k
         b = self.b
@@ -63,13 +67,12 @@ class Tire:
             k = self.k * 0.95
             b = self.b * 0.9
             d = self.d * 0.9
-            self.max_laps += self.max_laps * 0.1
         elif aggression == Aggression.EASY:
             c = self.c * 0.975
             k = self.k * 0.975
             b = self.b * 0.95
             d = self.d * 0.95
-            self.max_laps += self.max_laps * 0.05
+            self.max_laps -= self.max_laps * 0.0125
         elif aggression == Aggression.PUSH:
             c = self.c * 1.025
             k = self.k * 1.025
@@ -82,6 +85,8 @@ class Tire:
             b = self.b * 1.1
             d = self.d * 1.1
             self.max_laps -= self.max_laps * 0.1
+        else:
+            self.max_laps -= self.max_laps * 0.025
         if self.n < self.max_laps:
             return c - k * exp(self.n * b + d)
         else:
