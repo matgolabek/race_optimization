@@ -9,13 +9,12 @@ def time_function(list_of_laps ,circuit):
     """
     k_pit = 0 #licznik pitstopów
     f = 0 #czas
-     
+    tires = circuit.get_tires() #pobranie posortowanej liczby opon
     for n in range(circuit.no_laps) : #osobnik: N*[p,A,o]
-        
-        tires = circuit.get_tires() #pobranie posortowanej liczby opon
 
         if (n>0 and list_of_laps[n].compound!=list_of_laps[n-1].compound) or list_of_laps[n].pit==1 or n==0: #czy nastąpił pitstop lub zmiana opony 
-            k_pit += 1
+            if n>0:
+                k_pit += 1
             if list_of_laps[n].compound.value== Compound.SOFT.value: #zmiana na mieszankę miękką
                 if len(tires[Compound.SOFT.value])==0: #czy zostały jeszcze miękkie opony
                     return math.inf
@@ -34,14 +33,18 @@ def time_function(list_of_laps ,circuit):
                 
                 new_tire = tires[Compound.HARD.value].pop(0)
 
-            if new_tire.lap_completed(list_of_laps[n].aggression)==0 : #czy opona pękła 
+            speed = new_tire.lap_completed(list_of_laps[n].aggression) # pobranie prędkości na n-tym okrążeniu dla danej opony i  agresji
+            if speed==0 : #czy opona pękła 
                 return math.inf
             
-            f += (new_tire.lap_completed(list_of_laps[n].aggression)+velocity_e(n)+velocity_m(n)) #dodanie prędkości na n-tym okrążeniu dla nowej opony
+            f += (speed+velocity_e(n)+velocity_m(n)) #dodanie prędkości na n-tym okrążeniu dla nowej opony
 
         else : 
-            f += (new_tire.lap_completed(list_of_laps[n].aggression)+velocity_e(n)+velocity_m(n)) #dodanie prędkości na n-tym okrążeniu
-        
+            speed = new_tire.lap_completed(list_of_laps[n].aggression) # pobranie prędkości na n-tym okrążeniu dla danej opony i  agresji
+            if speed==0 : #czy opona pękła 
+                return math.inf
+            f += (speed+velocity_e(n)+velocity_m(n)) #dodanie prędkości na n-tym okrążeniu
+
     if k_pit==0: #czy wystąpił przynajmniej jeden pitstop
         return math.inf
 
