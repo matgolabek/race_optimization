@@ -43,6 +43,7 @@ class NextPopulation:
         self.individuals = individuals   # lista osobników
         self.picked_parents = []    # lista rodziców wybieranych z osobników
         self.new_individuals = []   # lista nowych osobników po krzyżowaniu i mutacji; z niej stworzona będzie nowa populacja
+        self.size = len(individuals)
 
     def start_population(self,size: int,c: Circuit) -> None:
         """
@@ -63,43 +64,8 @@ class NextPopulation:
                 list_of_laps.append(partial_ind)    # wszystkie okrążenia zbierane do listy
             individual = Individual(N, list_of_laps,copy.deepcopy(c))  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
             self.individuals.append(individual)  # na koniec powstały osobnik jest dodawany do listy wszystkich osobników
-
-    def pick_parents(self, m: int, n: int, selection) -> None:     # ważne, żeby m było parzystą liczbą
-        """
-        :param m (int) : liczba pozbiorów
-        :param n (int) : liczba osobników w każdym podzbiorze
-        :param selection ()- rodzaj wybranej selekcji
-        1. obliczenie funkcji celu dla każdego osobnika - to jest już pole klasy Individual.fitness
-        2. wyznaczenie m podzbiorów, n-elementowych
-        """ 
-        subsets = []
-        for _ in range(m):
-            subsets.append(random.sample(self.individuals, n))
-        # 3. z każdego pozbioru wybór 1 elementu i wrzucenie go do picked_parents
-        for subset in subsets:
-            self.picked_parents.append(max(subset, key = lambda x: x.fitness))    # wybierz najlepiej przystosowanego
-        # UWAGA - kod nie uwzględnia tego czy osobnik już wcześniej został wybrany do podzbioru
-        # więc może dojść do przypadku, że z podzbioru 1 i 2 zostanie wybrany ten sam rodzic
-
-    def cross(self):
-
-        while self.picked_parents:
-
-            # losowy wybrani rodzice z listy
-            inx = random.randint(0, len(self.picked_parents) - 1)
-            parent1 = self.picked_parents.pop(inx)
-            inx = random.randint(0, len(self.picked_parents) - 1)
-            parent2 = self.picked_parents.pop(0)
-
-            # krzyżowanie
-            midpoint = parent1.size // 2
-            child1 = parent1[:midpoint] + parent2[midpoint:]
-            child2 = parent2[:midpoint] + parent1[midpoint:]
-
-            # dzieci idą do new_ind
-            self.new_individuals.append(child1)
-            self.new_individuals.append(child2)
-
+            self.size = len(self.individuals)
+            
     def mutate(self,mutation_prob):
 
         for individual in self.new_individuals:
@@ -117,5 +83,5 @@ class NextPopulation:
         # połącz new_individuals z individuals
         # nw czy to będzie ok, ale żeby np. jak populacja bazowa ma rozmiar x (ind) a new_ind ma rozmiar y, to żeby z ind dobrać k najlepszych osobników, żeby y+k=x
 
-        while len(self.new_individuals != self.individuals):
-            self.new_individuals.append(max(self.individuals, lambda x: x.fitness))     # jeśli to doprowadzi do super osobnikow to ofc dodac to jakas losowosc
+        while len(self.new_individuals) != len(self.individuals):
+            self.new_individuals.append(max(self.individuals, key = lambda x: x.fitness))     # jeśli to doprowadzi do super osobnikow to ofc dodac to jakas losowosc

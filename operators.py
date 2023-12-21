@@ -7,7 +7,7 @@ from typing import Union
 def mutate_aggression(population: NextPopulation, probability: float = 0.03) -> None:
     """
     Mutacja tylko agresji z zadanym prawdopodobieństwem (domyślnie 0.05)
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
     :return: None
     """
@@ -27,7 +27,7 @@ def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
     """
     Mutacja wykonania pit stopu z zadanym prawdpopodbieństwem (domyślnie 0.03)
     :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :return: None
     """
     if probability <= 0 or probability >= 1:
@@ -46,7 +46,7 @@ def mutate_compound(population: NextPopulation, probability: float = 0.05) -> No
     """
     Mutacja rodzaju meszanki stopu z zadanym prawdpopodbieństwem (domyślnie 0.03)
     :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :return: None
     """
     if probability <= 0 or probability >= 1:
@@ -64,7 +64,7 @@ def cross(population: NextPopulation, random_division_point: bool = False) -> No
     """
     Krzyżowanie z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
     :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation: populacja
     :return: None
     """
     while population.picked_parents:
@@ -90,7 +90,7 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
     Krzyżowanie przed zadanym pit stopem losowego osobnika lub lepszego, gdy nie znajdzie pit sotpu to wylosuje punkt krzyżowania
     :param best_first: (bool) : krzyżowanie przed pierwszym pit stopem lepszego z rodziców
     :param no_pit: (int) : nr pit stopu przed którym ma wystąpić krzyżowanie
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :return: None
     """
     while population.picked_parents:
@@ -123,7 +123,7 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
 def pick_parents_tournament(population: NextPopulation, m: int, n: int) -> None:
     """
     Wybranie rodziców turniejowo w m-podzbiorach n-elementowych
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :param m: (int) : liczba podzbiorów parzysta
     :param n: (int) : liczba elementów w podzbiorze
     :return: None
@@ -141,7 +141,7 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
     """
     Wybranie rodziców ruletką z prawdopodobieństwem równym albo proporcjonalnym
     :param m: (int) : liczba wybranych rodziców
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :param equal_chances: (bool) : czy prawdopodobieństwo wyboru równe
     :return: None
     """
@@ -169,7 +169,7 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
 def adjust_population(population: NextPopulation, best_ancestors: bool = False, elitist: List[Individual] = []) -> None:
     """
     Funkcja uzupełniająca rozmiar populacji
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :param population: NextPopulation : populacja
     :param best_ancestors: (bool) : dobieranie od najlpeszych przodków lub losowo
     :param elitist : krótka lista osobników, które jeszcze przed selekcją dostały passa do następnej populacji (domyślnie pusta), funkcja wybierająca te osobniki jest dosłownie pod tą
     :return: None
