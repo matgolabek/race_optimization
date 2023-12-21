@@ -1,7 +1,5 @@
-from data import *
 import random
 from objective_function import *
-import main
 import copy
 
 
@@ -38,23 +36,26 @@ class Individual:
 
 
 # populacja startowa
-class StartPopulation:
+class NextPopulation:
 
-    def __init__(self, size: int, c: Circuit):
+    def __init__(self, individuals: List[Individual]):
 
-        N = c.no_laps
-        self.size = size    # rozmiar populacji
-        self.individuals = []   # lista osobników
+        self.individuals = individuals   # lista osobników
         self.picked_parents = []    # lista rodziców wybieranych z osobników
+        self.new_individuals = []   # lista nowych osobników po krzyżowaniu i mutacji; z niej stworzona będzie nowa populacja
 
-        self.new_individuals = []   # lista nowych osobników; po krzyżowaniu i mutacji, z niej stworzona będzie nowa populacja
-
+    def start_population(self,size: int,c: Circuit) -> None:
+        """
+        :param size (int) : rozmiar populacji
+        :param infividuals (List[Inddividuals]) : rodzice przekazani z poprzedniej populacji
+        """
+        N = c.no_laps
         # tworzenie losowych osobników
         # size*N*(p, A, o) -  size razy N krotek
         for i in range(size):
             list_of_laps = []     # każdy osobnik to N-elementowa lista krotek
             for lap in range(N):    # N okrążeń w każdym osobniku
-                pit = random.choices(list(Pit), weights=[0.92, 0.08])[0]  # PIT=YES z p=0.9
+                pit = random.choices(list(Pit), weights=[0.92, 0.08])[0]  # PIT=YES z prawdopodobieństwem 8%
                 aggression = random.choice(list(Aggression)) # agresja wybierana jest losowo      
                 if lap==0 or pit==Pit.YES:
                     compound = random.choice(list(Compound))   # rodzaj mieszanki ustalany, gdy wystąpi pitstop i nie zmienia sie do kolejnego pitstopu  
@@ -63,17 +64,20 @@ class StartPopulation:
             individual = Individual(N, list_of_laps,copy.deepcopy(c))  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
             self.individuals.append(individual)  # na koniec powstały osobnik jest dodawany do listy wszystkich osobników
 
-    def pick_parents(self, m: int, n: int):     # ważne, żeby m było parzystą liczbą
-        # m - liczba pozbiorów
-        # n - liczba osobników w każdym podzbiorze
-        # 1. obliczenie funkcji celu dla każdego osobnika - to jest już pole klasy Individual.fitness
-        # 2. wyznaczenie m podzbiorów, n-elementowych
+    def pick_parents(self, m: int, n: int, selection) -> None:     # ważne, żeby m było parzystą liczbą
+        """
+        :param m (int) : liczba pozbiorów
+        :param n (int) : liczba osobników w każdym podzbiorze
+        :param selection ()- rodzaj wybranej selekcji
+        1. obliczenie funkcji celu dla każdego osobnika - to jest już pole klasy Individual.fitness
+        2. wyznaczenie m podzbiorów, n-elementowych
+        """ 
         subsets = []
         for _ in range(m):
             subsets.append(random.sample(self.individuals, n))
         # 3. z każdego pozbioru wybór 1 elementu i wrzucenie go do picked_parents
         for subset in subsets:
-            self.picked_parents.append(max(subset, lambda x: x.fitness))    # wybierz najlepiej przystosowanego
+            self.picked_parents.append(max(subset, key = lambda x: x.fitness))    # wybierz najlepiej przystosowanego
         # UWAGA - kod nie uwzględnia tego czy osobnik już wcześniej został wybrany do podzbioru
         # więc może dojść do przypadku, że z podzbioru 1 i 2 zostanie wybrany ten sam rodzic
 
@@ -96,7 +100,7 @@ class StartPopulation:
             self.new_individuals.append(child1)
             self.new_individuals.append(child2)
 
-    def mutate(self):
+    def mutate(self,mutation_prob):
 
         for individual in self.new_individuals:
             for gene in individual:
@@ -115,59 +119,3 @@ class StartPopulation:
 
         while len(self.new_individuals != self.individuals):
             self.new_individuals.append(max(self.individuals, lambda x: x.fitness))     # jeśli to doprowadzi do super osobnikow to ofc dodac to jakas losowosc
-
-
-# każda kolejna populacja (osobniki nie są już generowane losowo)
-
-class NextPopulation:
-
-    def __init__(self, individuals):
-
-        self.individuals = individuals
-        self.picked_parents = []
-
-        self.new_individuals = []
-
-    def pick_parents(self, m: int, n: int):
-
-        subsets = []
-
-        for _ in range(m):
-            subsets.append(random.sample(self.individuals, n))
-
-        for subset in subsets:
-            self.picked_parents.append(max(subset, lambda x: x.fitness))
-
-    def cross(self):
-
-        while self.picked_parents:
-
-            inx = random.randint(0, len(self.picked_parents) - 1)
-            parent1 = self.picked_parents.pop(inx)
-            inx = random.randint(0, len(self.picked_parents) - 1)
-            parent2 = self.picked_parents.pop(0)
-
-            split_point = random.randint(0, parent1.size)   # losowy punkt krzyżowania zamiast środkowego
-            child1 = parent1[:split_point] + parent2[split_point:]
-            child2 = parent2[:split_point] + parent1[split_point:]
-
-            self.new_individuals.append(child1)
-            self.new_individuals.append(child2)
-
-    def mutate(self):
-
-        for individual in self.new_individuals:
-
-            for gene in individual:
-                change = random.choices([False, True], [0.97, 0.03])[0]
-
-                if change:
-                    aggressions = list(Aggression)
-                    aggressions.remove(gene.aggression)
-                    new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
-                    gene.aggression = new_aggression
-
-    def shuffle_population(self):
-
-        while len(self.new_individuals != self.individuals):
-            self.new_individuals.append(max(self.individuals, lambda x: x.fitness))

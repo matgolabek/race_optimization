@@ -1,9 +1,10 @@
 import random
-from population import *
+from data import *
+from population import NextPopulation,Individual
 from typing import Union
 
 
-def mutate_aggression(population: Union[NextPopulation, StartPopulation], probability: float = 0.03) -> None:
+def mutate_aggression(population: NextPopulation, probability: float = 0.03) -> None:
     """
     Mutacja tylko agresji z zadanym prawdopodobieństwem (domyślnie 0.05)
     :param population: (Union[NextPopulation, StartPopulation]) : populacja
@@ -22,7 +23,7 @@ def mutate_aggression(population: Union[NextPopulation, StartPopulation], probab
                 gene.aggression = new_aggression
 
 
-def mutate_pit(population: Union[NextPopulation, StartPopulation], probability: float = 0.05) -> None:
+def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
     """
     Mutacja wykonania pit stopu z zadanym prawdpopodbieństwem (domyślnie 0.03)
     :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
@@ -41,7 +42,7 @@ def mutate_pit(population: Union[NextPopulation, StartPopulation], probability: 
                     gene.pit = Pit.NO
 
 
-def mutate_compound(population: Union[NextPopulation, StartPopulation], probability: float = 0.05) -> None:
+def mutate_compound(population: NextPopulation, probability: float = 0.05) -> None:
     """
     Mutacja rodzaju meszanki stopu z zadanym prawdpopodbieństwem (domyślnie 0.03)
     :param probability: (float) : prawdopodobieństwo wystąpienia mutacji
@@ -59,7 +60,7 @@ def mutate_compound(population: Union[NextPopulation, StartPopulation], probabil
                 gene.compound = random.choices(compounds, [0.5, 0.5])[0]
 
 
-def cross(population: Union[NextPopulation, StartPopulation], random_division_point: bool = False) -> None:
+def cross(population: NextPopulation, random_division_point: bool = False) -> None:
     """
     Krzyżowanie z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
     :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
@@ -84,7 +85,7 @@ def cross(population: Union[NextPopulation, StartPopulation], random_division_po
         population.new_individuals.append(child2)
 
 
-def cross_before_pit(population: Union[NextPopulation, StartPopulation], no_pit: int = 1, best_first: bool = False) -> None:
+def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bool = False) -> None:
     """
     Krzyżowanie przed zadanym pit stopem losowego osobnika lub lepszego, gdy nie znajdzie pit sotpu to wylosuje punkt krzyżowania
     :param best_first: (bool) : krzyżowanie przed pierwszym pit stopem lepszego z rodziców
@@ -119,7 +120,7 @@ def cross_before_pit(population: Union[NextPopulation, StartPopulation], no_pit:
         population.new_individuals.append(child2)
 
 
-def pick_parents_tournament(population: Union[NextPopulation, StartPopulation], m: int, n: int) -> None:
+def pick_parents_tournament(population: NextPopulation, m: int, n: int) -> None:
     """
     Wybranie rodziców turniejowo w m-podzbiorach n-elementowych
     :param population: (Union[NextPopulation, StartPopulation]) : populacja
@@ -133,10 +134,10 @@ def pick_parents_tournament(population: Union[NextPopulation, StartPopulation], 
     for _ in range(m):
         subsets.append(random.sample(population.individuals, n))
     for subset in subsets:
-        population.picked_parents.append(max(subset, lambda x: x.fitness))
+        population.picked_parents.append(max(subset, key = lambda x: x.fitness))
 
 
-def pick_parents_roulette(population: Union[NextPopulation, StartPopulation], m: int, equal_chances: bool = False) -> None:
+def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: bool = False) -> None:
     """
     Wybranie rodziców ruletką z prawdopodobieństwem równym albo proporcjonalnym
     :param m: (int) : liczba wybranych rodziców
@@ -165,7 +166,7 @@ def pick_parents_roulette(population: Union[NextPopulation, StartPopulation], m:
             population.picked_parents.append(picked_individual)
 
 
-def adjust_population(population: Union[NextPopulation, StartPopulation], best_ancestors: bool = False, elitist: List[Individual] = []) -> None:
+def adjust_population(population: NextPopulation, best_ancestors: bool = False, elitist: List[Individual] = []) -> None:
     """
     Funkcja uzupełniająca rozmiar populacji
     :param population: (Union[NextPopulation, StartPopulation]) : populacja
@@ -197,7 +198,7 @@ def adjust_population(population: Union[NextPopulation, StartPopulation], best_a
             population.new_individuals.append(population.individuals.pop(random_idx))
 
 
-def cross_agression(population: Union[NextPopulation, StartPopulation], random_division_point: bool = False) -> None:
+def cross_agression(population: NextPopulation, random_division_point: bool = False) -> None:
     """
     Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
     :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
@@ -230,7 +231,7 @@ def cross_agression(population: Union[NextPopulation, StartPopulation], random_d
         population.new_individuals.append(child2)
 ##################
 
-def elitist_selection(population: Union[StartPopulation, NextPopulation], n: int = 5) -> List[Individual]:
+def elitist_selection(population: NextPopulation, n: int = 5) -> List[Individual]:
     """
     Wybranie jakiejś małej grupy osobników, która przechodzi od razu do następnej populacji, czyli
     1. wybór tych kilku najlepszych
@@ -252,7 +253,7 @@ def elitist_selection(population: Union[StartPopulation, NextPopulation], n: int
         return None
 
 
-def cross_2_points(population: Union[StartPopulation, NextPopulation]) -> None:
+def cross_2_points(population: NextPopulation) -> None:
     """
     2 losowe punkty krzyżowania
     :param population:
