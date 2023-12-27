@@ -72,21 +72,21 @@ class Tire:
             k = self.k * 0.975
             b = self.b * 0.95
             d = self.d * 0.95
-            self.max_laps -= self.max_laps * 0.0125
+            self.max_laps -= self.max_laps * 0.00625
         elif aggression == Aggression.PUSH:
             c = self.c * 1.025
             k = self.k * 1.025
             b = self.b * 1.05
             d = self.d * 1.05
-            self.max_laps -= self.max_laps * 0.05
+            self.max_laps -= self.max_laps * 0.025
         elif aggression == Aggression.HARD_PUSH:
             c = self.c * 1.05
             k = self.k * 1.05
             b = self.b * 1.1
             d = self.d * 1.1
-            self.max_laps -= self.max_laps * 0.1
+            self.max_laps -= self.max_laps * 0.05
         else:
-            self.max_laps -= self.max_laps * 0.025
+            self.max_laps -= self.max_laps * 0.0125
         if self.n < self.max_laps:
             return c - k * exp(self.n * b + d)
         else:

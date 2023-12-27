@@ -161,25 +161,83 @@ class Config(QWidget):
 
     @pyqtSlot()
     def edit(self) -> None:
-        self.list_tires.addItem("text")
+        current_row = self.list_tires.currentRow()
+        if current_row >= 0:
+            current_item = self.list_tires.takeItem(current_row)
+            del current_item
+            params = [0, 0., 0., 0., 0., 0, 0, 0, 0, 0, 0]
+            AddDialog(self, params, True).exec()
+            tire = Tire(Compound(params[0]), params[5], params[1], params[2], params[3], params[4])
+            for _ in range(params[6]):
+                tire.lap_completed(Aggression.TIRES_MANAGING)
+            for _ in range(params[7]):
+                tire.lap_completed(Aggression.EASY)
+            for _ in range(params[8]):
+                tire.lap_completed(Aggression.NORMAL)
+            for _ in range(params[9]):
+                tire.lap_completed(Aggression.PUSH)
+            for _ in range(params[10]):
+                tire.lap_completed(Aggression.HARD_PUSH)
+            self.parent.circuit_tires[current_row] = tire
+            self.list_tires.insertItem(current_row, str(tire))
 
     @pyqtSlot()
     def remove(self) -> None:
         current_row = self.list_tires.currentRow()
         if current_row >= 0:
             current_item = self.list_tires.takeItem(current_row)
+            self.parent.circuit_tires.pop(current_row)
             del current_item
 
     @pyqtSlot()
     def clear(self) -> None:
+        self.parent.circuit_tires = []
         self.list_tires.clear()
 
+class Solution(QWidget):
+
+    def __init__(self, parent: MainWindow):
+        """
+        Zakładka z rozwiązaniem
+        :param parent: (QMainWindow) : okno rodzic
+        """
+        super(Solution, self).__init__()
+
+        self.parent = parent  # wskaźnik na rodzica
+
+        layout_main = QVBoxLayout()  # układ główny
+
+        # USTAWIENIA UKŁADU
+        self.setLayout(layout_main)
+
+
+class Chart(QWidget):
+
+    def __init__(self, parent: MainWindow):
+        """
+        Zakładka z wykresem wartości funkcji celu od iteracji
+        :param parent: (QMainWindow) : okno rodzic
+        """
+        super(Chart, self).__init__()
+
+        self.parent = parent  # wskaźnik na rodzica
+
+        layout_main = QVBoxLayout()  # układ główny
+
+        # USTAWIENIA UKŁADU
+        self.setLayout(layout_main)
+
+# DODANIE OPONY DO ZAKŁADKI CONFIG
+
 class AddDialog(QDialog):
-    def __init__(self, parent: QWidget, params: List[Any]) -> None:
+    def __init__(self, parent: QWidget, params: List[Any], is_edit: bool = False) -> None:
         super().__init__(parent)
 
         self.params = params
-        self.setWindowTitle("Dodaj oponę")
+        if not is_edit:
+            self.setWindowTitle("Dodaj oponę")
+        else:
+            self.setWindowTitle("Edytuj oponę")
         self.layout = QVBoxLayout()
 
         info_label = QLabel("Uzupełnij parametry opony dane wzorem v(n) = c - k * exp(n * b + d)")
@@ -238,7 +296,10 @@ class AddDialog(QDialog):
         spin_a4.valueChanged.connect(self.update_a4)
         tire_layout.addRow("Przejechane okrążenia z agresywnością 4:", spin_a4)
 
-        add_button = QPushButton("Dodaj")
+        if not is_edit:
+            add_button = QPushButton("Dodaj")
+        else:
+            add_button = QPushButton("Edytuj")
         add_button.clicked.connect(self.accept)
 
         self.layout.addWidget(info_label)
@@ -345,38 +406,6 @@ class AddDialog(QDialog):
         """
         self.params[10] = a4
 
-class Solution(QWidget):
-
-    def __init__(self, parent: MainWindow):
-        """
-        Zakładka z rozwiązaniem
-        :param parent: (QMainWindow) : okno rodzic
-        """
-        super(Solution, self).__init__()
-
-        self.parent = parent  # wskaźnik na rodzica
-
-        layout_main = QVBoxLayout()  # układ główny
-
-        # USTAWIENIA UKŁADU
-        self.setLayout(layout_main)
-
-
-class Chart(QWidget):
-
-    def __init__(self, parent: MainWindow):
-        """
-        Zakładka z wykresem wartości funkcji celu od iteracji
-        :param parent: (QMainWindow) : okno rodzic
-        """
-        super(Chart, self).__init__()
-
-        self.parent = parent  # wskaźnik na rodzica
-
-        layout_main = QVBoxLayout()  # układ główny
-
-        # USTAWIENIA UKŁADU
-        self.setLayout(layout_main)
 
 def main():
     app = QApplication(sys.argv)
