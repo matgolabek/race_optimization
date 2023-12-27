@@ -4,7 +4,7 @@ from population import *
 from typing import List, Any
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QFormLayout, \
     QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, QDialogButtonBox, \
-    QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout
+    QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt, pyqtSlot, QRect
 
@@ -31,6 +31,10 @@ class MainWindow(QMainWindow):
         # ZMIENNE ALGORYTMU
 
         self.iterations = 0
+        self.population_size = 0
+        self.selection_type = ""
+        self.is_elitist = False
+        self.elitist_size = 5
 
         # USTAWIENIA OKNA
 
@@ -109,9 +113,67 @@ class Config(QWidget):
 
         button_write = QPushButton("Zapisz wprowadzone dane")   # zapisywanie do pliku
         button_write.setFixedSize(200, 50)
+        button_write.clicked.connect(self.save_data_to_file)
 
-        layout_config.addWidget(button_read)    # dodanie prrzycisków do layoutu
+        # wybór liczby iteracji
+        spin_iteration_number = QSpinBox(self)
+        spin_iteration_number.setRange(1, 1000)
+        label_iteration = QLabel("Liczba iteracji:")
+        spin_iteration_number.valueChanged.connect(self.set_iteration_number)   # jeśli zmieni się wartość, to przekazywana jest do funkcji
+        spin_iteration_number.setFixedSize(50, 20)
+
+        # wybór wielkości populacji
+        spin_population_size = QSpinBox(self)
+        spin_population_size.setRange(50, 1000)
+        label_population = QLabel("Wielkość populacji:")
+        spin_population_size.valueChanged.connect(self.set_population_size)
+        spin_population_size.setFixedSize(50, 20)
+
+        # metody selekcji
+        box_selection = QGroupBox("Selekcja")
+        layout_selection = QVBoxLayout()
+        radio_select1 = QRadioButton("Ruletka")
+        radio_select2 = QRadioButton("Turniej")
+        radio_select_all = [radio_select1, radio_select2]
+        for button in radio_select_all:
+            button.toggled.connect(self.set_selection_method)
+            layout_selection.addWidget(button)
+
+        check_elitist = QCheckBox("Elitarna?")  # czy selekcja ma być elitarna? jak checkbox zaznaczony to przekaż liczbę osobników do zostawienia w next gen
+        spin_elitist = QSpinBox()
+        spin_elitist.setRange(5, 1000)
+        spin_elitist.setFixedSize(50, 20)
+        check_elitist.stateChanged.connect(lambda state, checkbox=check_elitist, val=spin_elitist.value(): self.set_elitist_param(checkbox, val))
+
+        layout_selection.addWidget(check_elitist)
+        layout_selection.addWidget(spin_elitist)
+        box_selection.setLayout(layout_selection)
+
+        # wybór operatora krzyżowania + prawdopodobieństwo krzyżowania
+        box_cross = QGroupBox("Operatory krzyżowania")
+        layout_cross = QVBoxLayout()
+        radio1 = QRadioButton("Jednopunktowe środek")
+        radio2 = QRadioButton("Jednopunktowe losowo")
+        radio3 = QRadioButton("Przed pitstopem")
+        radio4 = QRadioButton("Tylko agresja")
+        radio5 = QRadioButton("Dwupunktowe losowo")
+        radio_all = [radio1, radio2, radio3, radio4, radio5]
+        for button in radio_all:
+            layout_cross.addWidget(button)
+            # dodanie funkcji toggle (póki co one nic nie robią)
+        box_cross.setLayout(layout_cross)
+
+        layout_config.addWidget(button_read)    # dodanie tych wszystkich rzeczy do layoutu
         layout_config.addWidget(button_write)
+        layout_config.addWidget(label_iteration)
+        layout_config.addWidget(spin_iteration_number)
+        layout_config.addWidget(label_population)
+        layout_config.addWidget(spin_population_size)
+        layout_config.addWidget(box_cross)
+        layout_config.addWidget(box_selection)
+
+        layout_config.addStretch()  # wszystko się wyświetla jedno pod drugim
+        layout_config.setSpacing(10)
 
         # USTAWIENIA UKŁADU
         self.box_circuit.setLayout(self.layout_circuit)
@@ -140,6 +202,54 @@ class Config(QWidget):
         self.layout_circuit.itemAt(3, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_t_pit)
         for tire in circuit.tires:
             self.layout_circuit.itemAt(4, QFormLayout.ItemRole.FieldRole).layout().itemAt(0).widget().addItem(str(tire))
+
+    def save_data_to_file(self) -> None:
+        """
+        Zapisywanie danych wprowadzonych ręcznie do pliku pkl
+        :return: None
+        """
+        new_circuit = Circuit(self.parent.circuit_name, self.parent.circuit_track_distance, self.parent.circuit_no_laps,
+                              self.parent.circuit_t_pit, self.parent.circuit_tires)
+        write_data(new_circuit)
+
+    def set_iteration_number(self, value_from_spinbox) -> None:
+        """
+        Wprowadzona przez użytkownika liczba iteracji zapisuje się w zmiennej
+        (wywołuje się, gdy zmieni się wartość w spinboxie)
+        :return: None
+        """
+        self.parent.iterations = value_from_spinbox
+
+    def set_population_size(self, value_from_spinbox) -> None:
+        """
+        Analogicznie do powyższej ustawia wielkość populacji
+        :param value_from_spinbox:
+        :return:
+        """
+        self.parent.population_size = value_from_spinbox
+
+    def set_selection_method(self, toggled_button) -> None:
+        """
+        Wybór metody selekcji
+        :param toggled_button: zaznaczony radio button
+        :return:
+        """
+        if toggled_button.text() == "Ruletka":
+            self.parent.selection_type = "roulette"
+        elif toggled_button.text() == "Turniej":
+            self.parent.selection_type = "tournament"
+
+    def set_elitist_param(self, checkbox, value_from_spinbox) -> None:
+        """
+        Jeśli zaznaczony będzie checkbox, to odpowiednia wartość zostanie przypisana
+        :return:
+        """
+        if checkbox.checkState():
+            self.parent.is_elitist = True
+            self.parent.elitist_size = value_from_spinbox
+        else:
+            self.parent.is_elitist = False
+
 
     @pyqtSlot()
     def add(self) -> None:
@@ -194,6 +304,7 @@ class Config(QWidget):
         self.parent.circuit_tires = []
         self.list_tires.clear()
 
+
 class Solution(QWidget):
 
     def __init__(self, parent: MainWindow):
@@ -226,6 +337,7 @@ class Chart(QWidget):
 
         # USTAWIENIA UKŁADU
         self.setLayout(layout_main)
+
 
 # DODANIE OPONY DO ZAKŁADKI CONFIG
 

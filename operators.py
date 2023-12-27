@@ -266,9 +266,9 @@ def cross_2_points(population: NextPopulation) -> None:
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent2 = population.picked_parents.pop(inx)
 
-        point1 = random.radint(0, len(parent1))
+        point1 = random.randint(0, len(parent1))
         point2 = random.choice([i for i in range(len(parent1)) if i != point1])
-        point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
+        #point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
 
 
         child1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
