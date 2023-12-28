@@ -3,10 +3,16 @@ import sys
 from population import *
 from typing import List, Any
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QFormLayout, \
-    QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, QDialogButtonBox, \
+    QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, \
     QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox
-from PyQt6.QtGui import QFont
-from PyQt6.QtCore import Qt, pyqtSlot, QRect
+from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtGui import QPixmap, QPainter, QColor
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
+import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use('TkAgg')
 
 
 # OKNO GŁÓWNE
@@ -316,10 +322,33 @@ class Solution(QWidget):
 
         self.parent = parent  # wskaźnik na rodzica
 
+        self.label = QLabel()
+        canvas = QPixmap(400, 300)
+        canvas.fill(QColor("white"))
+        self.label.setPixmap(canvas)
+
+        self.painter = QPainter(self.label.pixmap())
+
+        self.button = QPushButton("Pokaż rozwiązanie")  # przycisk na rysowanie wykresu
+        self.button.clicked.connect(self.draw_solution)
+
         layout_main = QVBoxLayout()  # układ główny
 
         # USTAWIENIA UKŁADU
+        layout_main.addWidget(self.label)
+        layout_main.addWidget(self.button)
         self.setLayout(layout_main)
+
+    @pyqtSlot()
+    def draw_solution(self) -> None:
+        """
+        Rysowanie odpowiedzi
+        :return: None
+        """
+        self.painter.drawLine(10, 10, 300, 200)
+        self.painter.end()
+        self.label.update()
+        
 
 
 class Chart(QWidget):
@@ -333,11 +362,32 @@ class Chart(QWidget):
 
         self.parent = parent  # wskaźnik na rodzica
 
-        layout_main = QVBoxLayout()  # układ główny
+        self.figure = plt.figure()  # wykres
+        self.canvas = FigureCanvasQTAgg(self.figure)
+        self.toolbar = NavigationToolbar2QT(self.canvas, self)
 
-        # USTAWIENIA UKŁADU
-        self.setLayout(layout_main)
+        self.button = QPushButton("Narysuj wykres")  # przycisk na rysowanie wykresu
+        self.button.clicked.connect(self.plot_graph)
 
+        layout = QVBoxLayout()  # układ
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
+        layout.addWidget(self.button)
+        self.setLayout(layout)
+
+    @pyqtSlot()
+    def plot_graph(self) -> None:
+        """
+        Rysowanie wykresu
+        :return: None
+        """
+        self.figure.clear()
+        ax = self.figure.add_subplot()
+        ax.clear()
+        ax.step([1, 2, 3, 4, 5, 6], [10, 20, 30, 40, 20, 10])
+        ax.set(xlabel="Liczba iteracji", ylabel="Wartość funkcji celu",
+                title="Wartość funkcji celu od liczby iteracji", xlim=[1, self.parent.circuit_no_laps])
+        self.canvas.draw()
 
 # DODANIE OPONY DO ZAKŁADKI CONFIG
 
