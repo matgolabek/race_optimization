@@ -1,7 +1,8 @@
 import random
 from data import *
-from population import NextPopulation,Individual
+from population import NextPopulation,Individual,PartialIndividual
 from typing import Union
+import copy
 
 
 def mutate_aggression(population: NextPopulation, probability: float = 0.03) -> None:
@@ -14,13 +15,14 @@ def mutate_aggression(population: NextPopulation, probability: float = 0.03) -> 
     if probability <= 0 or probability >= 1:
         probability = 0.05
     for individual in population.new_individuals:
-        for gene in individual:
+        for gene in individual.list_of_laps:
             change = random.choices([False, True], [1 - probability, probability])[0]
             if change:
                 aggressions = list(Aggression)
                 aggressions.remove(gene.aggression)
                 new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                 gene.aggression = new_aggression
+        individual.update_fitness(copy.deepcopy(population.circuit))
 
 
 def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
@@ -33,13 +35,14 @@ def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
     if probability <= 0 or probability >= 1:
         probability = 0.05
     for individual in population.new_individuals:
-        for gene in individual:
+        for gene in individual.list_of_laps:
             change = random.choices([False, True], [1 - probability, probability])[0]
             if change:
                 if gene.pit == Pit.NO:
                     gene.pit = Pit.YES
                 else:
                     gene.pit = Pit.NO
+        individual.update_fitness(copy.deepcopy(population.circuit))
 
 
 def mutate_compound(population: NextPopulation, probability: float = 0.05) -> None:
@@ -52,12 +55,13 @@ def mutate_compound(population: NextPopulation, probability: float = 0.05) -> No
     if probability <= 0 or probability >= 1:
         probability = 0.05
     for individual in population.new_individuals:
-        for gene in individual:
+        for gene in individual.list_of_laps:
             change = random.choices([False, True], [1 - probability, probability])[0]
             if change:
                 compounds = list(Compound)
                 compounds.remove(gene.compound)
                 gene.compound = random.choices(compounds, [0.5, 0.5])[0]
+        individual.update_fitness(copy.deepcopy(population.circuit))
 
 
 def cross(population: NextPopulation, random_division_point: bool = False) -> None:
@@ -78,8 +82,13 @@ def cross(population: NextPopulation, random_division_point: bool = False) -> No
         else:
             midpoint = parent1.size // 2
 
-        child1 = parent1[:midpoint] + parent2[midpoint:]
-        child2 = parent2[:midpoint] + parent1[midpoint:]
+        N = population.size
+
+        new_list_of_laps1 = parent1.list_of_laps[:midpoint] + parent2.list_of_laps[midpoint:]
+        new_list_of_laps2 = parent2.list_of_laps[:midpoint] + parent1.list_of_laps[midpoint:]
+        
+        child1 = Individual(new_list_of_laps1,copy.deepcopy(population.circuit))
+        child2 = Individual(new_list_of_laps2,copy.deepcopy(population.circuit))
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
@@ -113,8 +122,13 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
                     no_pit -= 1
             prev_compound = gene.compound
 
-        child1 = parent1[:division_idx] + parent2[division_idx:]
-        child2 = parent2[:division_idx] + parent1[division_idx:]
+        N = population.size
+
+        new_list_of_laps1 = parent1.list_of_laps[:division_idx] + parent2.list_of_laps[division_idx:]
+        new_list_of_laps2 = parent2.list_of_laps[:division_idx] + parent1.list_of_laps[division_idx:]
+        
+        child1 = Individual(new_list_of_laps1,copy.deepcopy(population.circuit))
+        child2 = Individual(new_list_of_laps2,copy.deepcopy(population.circuit))
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
@@ -134,7 +148,7 @@ def pick_parents_tournament(population: NextPopulation, m: int, n: int) -> None:
     for _ in range(m):
         subsets.append(random.sample(population.individuals, n))
     for subset in subsets:
-        population.picked_parents.append(max(subset, key = lambda x: x.fitness))
+        population.picked_parents.append(min(subset, key = lambda x: x.fitness))
 
 
 def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: bool = False) -> None:
@@ -216,20 +230,27 @@ def cross_agression(population: NextPopulation, random_division_point: bool = Fa
         else:
             midpoint = parent1.size // 2
 
-        child1 = parent1[:midpoint] + parent2[midpoint:]
-        child2 = parent2[:midpoint] + parent1[midpoint:]
+        N = population.size
+
+        new_aggression1 = []
+        new_aggression2 = []
 
         for i in range(midpoint):
-            child1.list_of_laps[i].aggression = parent1.list_of_laps[i].aggression
-            child2.list_of_laps[i].aggression = parent2.list_of_laps[i].aggression
+            new_aggression1.append(parent1.list_of_laps[i].aggression)
+            new_aggression2.append(parent2.list_of_laps[i].aggression)
 
         for i in range(midpoint,parent1.size):
-            child1.list_of_laps[i].aggression = parent2.list_of_laps[i].aggression
-            child2.list_of_laps[i].aggression = parent1.list_of_laps[i].aggression            
+            new_aggression1.append(parent2.list_of_laps[i].aggression)
+            new_aggression2.append(parent1.list_of_laps[i].aggression)
+        
+        new_list_of_laps1 = PartialIndividual(parent1.list_of_laps[0],new_aggression1,parent1.list_of_laps[2])
+        new_list_of_laps2 = PartialIndividual(parent2.list_of_laps[0],new_aggression2,parent2.list_of_laps[2])
+
+        child1 = Individual(N, new_list_of_laps1,copy.deepcopy(population.circuit))
+        child2 = Individual(N, new_list_of_laps2,copy.deepcopy(population.circuit))
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
-##################
 
 def elitist_selection(population: NextPopulation, n: int = 5) -> List[Individual]:
     """

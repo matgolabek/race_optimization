@@ -18,10 +18,13 @@ class PartialIndividual:    # Gen
 # N * [p, A, o]
 class Individual:
 
-    def __init__(self, N, list_of_laps,c:Circuit):
-        self.size = N
+    def __init__(self,list_of_laps,c:Circuit):
         self.list_of_laps = list_of_laps
-        self.fitness = time_function(list_of_laps,c)   # funckja celu musi mieć argumenty (N, list_of laps) a Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
+        self.size = len(list_of_laps)
+        self.fitness = time_function(list_of_laps,c)   #Osobnik, bo to jest wyliczane pole klasy Osobnik, więc Osobnik jeszcze jakby nie istnieje dopóki nie ma wyliczonego przystosowania!!!!
+
+    def update_fitness(self,c:Circuit):
+        self.fitness = time_function(self.list_of_laps,c)
 
     def __repr__(self):
         s = ""
@@ -38,50 +41,42 @@ class Individual:
 # populacja startowa
 class NextPopulation:
 
-    def __init__(self, individuals: List[Individual]):
+    def __init__(self, individuals: List[Individual],c: Circuit):
 
         self.individuals = individuals   # lista osobników
         self.picked_parents = []    # lista rodziców wybieranych z osobników
         self.new_individuals = []   # lista nowych osobników po krzyżowaniu i mutacji; z niej stworzona będzie nowa populacja
+        self.circuit = c
         self.size = len(individuals)
 
-    def start_population(self,size: int,c: Circuit) -> None:
+    def start_population(self,size) -> None:
         """
         :param size (int) : rozmiar populacji
         :param infividuals (List[Inddividuals]) : rodzice przekazani z poprzedniej populacji
         """
-        N = c.no_laps
+        N = self.circuit.no_laps
         # tworzenie losowych osobników
         # size*N*(p, A, o) -  size razy N krotek
         for i in range(size):
             list_of_laps = []     # każdy osobnik to N-elementowa lista krotek
             for lap in range(N):    # N okrążeń w każdym osobniku
-                pit = random.choices(list(Pit), weights=[0.92, 0.08])[0]  # PIT=YES z prawdopodobieństwem 8%
+                pit = random.choices(list(Pit), weights=[0.9, 0.1])[0]  # PIT=YES z prawdopodobieństwem X
                 aggression = random.choice(list(Aggression)) # agresja wybierana jest losowo      
                 if lap==0 or pit==Pit.YES:
                     compound = random.choice(list(Compound))   # rodzaj mieszanki ustalany, gdy wystąpi pitstop i nie zmienia sie do kolejnego pitstopu  
                 partial_ind = PartialIndividual(pit, aggression, compound)  # okrążenie (1/N-ta część osobnika)
                 list_of_laps.append(partial_ind)    # wszystkie okrążenia zbierane do listy
-            individual = Individual(N, list_of_laps,copy.deepcopy(c))  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
+            individual = Individual(list_of_laps,copy.deepcopy(self.circuit))  # po wypełnieniu listy okrążeniami tworzony jest nowy osobnik
             self.individuals.append(individual)  # na koniec powstały osobnik jest dodawany do listy wszystkich osobników
             self.size = len(self.individuals)
-            
-    def mutate(self,mutation_prob):
-
-        for individual in self.new_individuals:
-            for gene in individual:
-                change = random.choices([False, True], [0.97, 0.03])[0]     # dla każdego genu oblicz czy ma wystąpić mutacja
-                if change:
-                    # jak tak to zmień agresję - na numer inny niż obecny gene.aggression
-                    aggressions = list(Aggression)
-                    aggressions.remove(gene.aggression)
-                    new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
-                    gene.aggression = new_aggression
 
     def shuffle_population(self):
 
         # połącz new_individuals z individuals
         # nw czy to będzie ok, ale żeby np. jak populacja bazowa ma rozmiar x (ind) a new_ind ma rozmiar y, to żeby z ind dobrać k najlepszych osobników, żeby y+k=x
 
-        while len(self.new_individuals) != len(self.individuals):
-            self.new_individuals.append(max(self.individuals, key = lambda x: x.fitness))     # jeśli to doprowadzi do super osobnikow to ofc dodac to jakas losowosc
+        for i in range(self.size-len(self.new_individuals)):
+            parrent = min(self.individuals, key = lambda x: x.fitness)
+            self.individuals.pop(self.individuals.index(parrent))
+            self.new_individuals.append(parrent)     # jeśli to doprowadzi do super osobnikow to ofc dodac to jakas losowosc
+            
