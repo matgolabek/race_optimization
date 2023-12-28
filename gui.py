@@ -41,6 +41,11 @@ class MainWindow(QMainWindow):
         self.selection_type = ""
         self.is_elitist = False
         self.elitist_size = 5
+        self.cross_method = ""
+        self.cross_probability = 0
+        self.mutate_aggression_probability = 0
+        self.mutate_compound_probability = 0
+        self.mutate_pitstop_probability = 0
 
         # USTAWIENIA OKNA
 
@@ -130,7 +135,7 @@ class Config(QWidget):
 
         # wybór wielkości populacji
         spin_population_size = QSpinBox(self)
-        spin_population_size.setRange(50, 1000)
+        spin_population_size.setRange(10, 1000)
         label_population = QLabel("Wielkość populacji:")
         spin_population_size.valueChanged.connect(self.set_population_size)
         spin_population_size.setFixedSize(50, 20)
@@ -142,7 +147,7 @@ class Config(QWidget):
         radio_select2 = QRadioButton("Turniej")
         radio_select_all = [radio_select1, radio_select2]
         for button in radio_select_all:
-            button.toggled.connect(self.set_selection_method)
+            button.toggled.connect(lambda state, toggled_button=button: self.set_selection_method(toggled_button))
             layout_selection.addWidget(button)
 
         check_elitist = QCheckBox("Elitarna?")  # czy selekcja ma być elitarna? jak checkbox zaznaczony to przekaż liczbę osobników do zostawienia w next gen
@@ -165,9 +170,67 @@ class Config(QWidget):
         radio5 = QRadioButton("Dwupunktowe losowo")
         radio_all = [radio1, radio2, radio3, radio4, radio5]
         for button in radio_all:
+            button.toggled.connect(lambda state, toggled_button=button: self.set_cross_method(toggled_button))
             layout_cross.addWidget(button)
-            # dodanie funkcji toggle (póki co one nic nie robią)
+
+        spin_cross_probability = QSpinBox()
+        spin_cross_probability.setRange(0, 100)
+        label_cross_probability = QLabel("Z prawdopodobieństwem [%]:")
+        spin_cross_probability.valueChanged.connect(self.set_cross_probability)
+        spin_cross_probability.setFixedSize(50, 20)
+        layout_cross.addWidget(label_cross_probability)
+        layout_cross.addWidget(spin_cross_probability)
         box_cross.setLayout(layout_cross)
+
+        # analogicznie wybór operatora mutacji
+        box_mutate = QGroupBox("Operatory mutacji")
+        layout_mutate = QVBoxLayout()
+        check1_mutate = QCheckBox("Agresja")
+        label1_mutate = QLabel("Z prawdopodobieństwem [%]:")
+        spin1_mutate = QSpinBox()
+        spin1_mutate.setRange(0, 100)
+        spin1_mutate.setFixedSize(50, 20)
+        check2_mutate = QCheckBox("Mieszanka")
+        label2_mutate = QLabel("Z prawdopodobieństwem [%]:")
+        spin2_mutate = QSpinBox()
+        spin2_mutate.setRange(0, 100)
+        spin2_mutate.setFixedSize(50, 20)
+        check3_mutate = QCheckBox("Pitstop")
+        label3_mutate = QLabel("Z prawdopodobieństwem [%]:")
+        spin3_mutate = QSpinBox()
+        spin3_mutate.setRange(0, 100)
+        spin3_mutate.setFixedSize(50, 20)
+
+        # jeśli checkbox jest zaznaczony lub zmieniona jest wartość prawdopodobieństwa
+        check1_mutate.stateChanged.connect(
+            lambda state, checkbox=check1_mutate, val=spin1_mutate.value(): self.set_mutate_aggression_probability(
+                checkbox, val))
+        spin1_mutate.valueChanged.connect(
+            lambda state, checkbox=check1_mutate, val=spin1_mutate.value(): self.set_mutate_aggression_probability(
+                checkbox, val))
+        check2_mutate.stateChanged.connect(
+            lambda state, checkbox=check2_mutate, val=spin2_mutate.value(): self.set_mutate_compound_probability(
+                checkbox, val))
+        spin2_mutate.valueChanged.connect(
+            lambda state, checkbox=check2_mutate, val=spin2_mutate.value(): self.set_mutate_compound_probability(
+                checkbox, val))
+        check3_mutate.stateChanged.connect(
+            lambda state, checkbox=check3_mutate, val=spin3_mutate.value(): self.set_mutate_pitstop_probability(
+                checkbox, val))
+        spin3_mutate.valueChanged.connect(
+            lambda state, checkbox=check3_mutate, val=spin3_mutate.value(): self.set_mutate_pitstop_probability(
+                checkbox, val))
+
+        layout_mutate.addWidget(check1_mutate)
+        layout_mutate.addWidget(label1_mutate)
+        layout_mutate.addWidget(spin1_mutate)
+        layout_mutate.addWidget(check2_mutate)
+        layout_mutate.addWidget(label2_mutate)
+        layout_mutate.addWidget(spin2_mutate)
+        layout_mutate.addWidget(check3_mutate)
+        layout_mutate.addWidget(label3_mutate)
+        layout_mutate.addWidget(spin3_mutate)
+        box_mutate.setLayout(layout_mutate)
 
         layout_config.addWidget(button_read)    # dodanie tych wszystkich rzeczy do layoutu
         layout_config.addWidget(button_write)
@@ -175,8 +238,9 @@ class Config(QWidget):
         layout_config.addWidget(spin_iteration_number)
         layout_config.addWidget(label_population)
         layout_config.addWidget(spin_population_size)
-        layout_config.addWidget(box_cross)
         layout_config.addWidget(box_selection)
+        layout_config.addWidget(box_cross)
+        layout_config.addWidget(box_mutate)
 
         layout_config.addStretch()  # wszystko się wyświetla jedno pod drugim
         layout_config.setSpacing(10)
@@ -230,7 +294,7 @@ class Config(QWidget):
         """
         Analogicznie do powyższej ustawia wielkość populacji
         :param value_from_spinbox:
-        :return:
+        :return: nic
         """
         self.parent.population_size = value_from_spinbox
 
@@ -238,7 +302,7 @@ class Config(QWidget):
         """
         Wybór metody selekcji
         :param toggled_button: zaznaczony radio button
-        :return:
+        :return: Nic
         """
         if toggled_button.text() == "Ruletka":
             self.parent.selection_type = "roulette"
@@ -248,7 +312,7 @@ class Config(QWidget):
     def set_elitist_param(self, checkbox, value_from_spinbox) -> None:
         """
         Jeśli zaznaczony będzie checkbox, to odpowiednia wartość zostanie przypisana
-        :return:
+        :return: NIIIC
         """
         if checkbox.checkState():
             self.parent.is_elitist = True
@@ -256,6 +320,58 @@ class Config(QWidget):
         else:
             self.parent.is_elitist = False
 
+    def set_cross_method(self, toggled_button) -> None:
+        """
+        Wybór operatora krzyżowania
+        :return: NiC
+        """
+        if toggled_button.text() == "Jednopunktowe środek":
+            self.parent.cross_method = "1_point_mid"
+        elif toggled_button.text() == "Jednopunktowe losowo":
+            self.parent.cross_method = "1_point_random"
+        elif toggled_button.text() == "Przed pitstopem":
+            self.parent.cross_method = "before_pit"
+        elif toggled_button.text() == "Tylko agresja":
+            self.parent.cross_method = "aggression"
+        elif toggled_button.text() == "Dwupunktowe losowo":
+            self.parent.cross_method = "2_points_random"
+
+    def set_cross_probability(self, value_from_spinbox):
+        """
+        Ustawienie p. krzyżowania
+        :return: NIC
+        """
+        self.parent.cross_probability = value_from_spinbox / 100
+
+    def set_mutate_aggression_probability(self, checkbox, value):
+        """
+        Mutacja agresji
+        :param checkbox:
+        :param value:
+        :return:
+        """
+        if checkbox.checkState():
+            self.parent.mutate_aggression_probability = value / 100
+
+    def set_mutate_compound_probability(self, checkbox, value):
+        """
+        Mutacja agresji
+        :param checkbox:
+        :param value:
+        :return:
+        """
+        if checkbox.checkState():
+            self.parent.mutate_compound_probability = value / 100
+
+    def set_mutate_pitstop_probability(self, checkbox, value):
+        """
+        Mutacja agresji
+        :param checkbox:
+        :param value:
+        :return:
+        """
+        if checkbox.checkState():
+            self.parent.mutate_pitstop_probability = value / 100
 
     @pyqtSlot()
     def add(self) -> None:
