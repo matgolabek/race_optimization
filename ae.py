@@ -17,7 +17,7 @@ def evolutionary_algorith(start_size: int, circuit: Circuit, max_iter: int, pare
     : param mutation_prob2 (float): prawdopodobieństwo występowania mutacji 2
     : param mutation_pit (int) : czy mutacja pitstopu jest włączona
     : param mutation_prob3 (float): prawdopodobieństwo występowania mutacji 3
-
+    : return : Lista czasu,liczby iteracji, najlepszego osobnika, iteracji w której został znaleziony
     """
     start_time = time.time() #czas początkowy
 
@@ -30,7 +30,7 @@ def evolutionary_algorith(start_size: int, circuit: Circuit, max_iter: int, pare
     best_i = i #pierwsze pokolenie najlepszego osobnika
     # każdy osobnik populacji ma od razu przypisaną wartość przystosowania (f. celu)
     P_prev = P_start
-    print(P_prev.individuals,"\n")
+
     while i < max_iter:     # może być inny warunek stopu np. jeśli któryś osobnik z P_prev ma odpowiednio dobre przystosowanie
         
         i+=1 # kolejne pokolenie
@@ -47,11 +47,11 @@ def evolutionary_algorith(start_size: int, circuit: Circuit, max_iter: int, pare
         #warunki uruchomienia poszczególnych krzyżowań wybranych orzez użytkownika
         if cross_type == 0:
             cross(P_prev,True)
-        if cross_type == 1:
+        elif cross_type == 1:
             cross_agression(P_prev,True)
         else:
             pass
-
+        
         #mutacja
         #warunki uruchomienia poszczególnych mutacji wybranych orzez użytkownika z odpowiednim prawdopodobieństwem
             if mutation_aggr == 1:
@@ -60,7 +60,7 @@ def evolutionary_algorith(start_size: int, circuit: Circuit, max_iter: int, pare
                 mutate_compound(P_prev,mutation_prob2)
             if mutation_pit == 1:
                 mutate_pit(P_prev,mutation_prob3)
-                
+
         #Łączenie pewniej części rodziców i stworzonych potomków ,aby stworzyć nowe pokolenie
         P_prev.shuffle_population()
 
@@ -78,6 +78,6 @@ def evolutionary_algorith(start_size: int, circuit: Circuit, max_iter: int, pare
             break
 
         total_time = time.time() - start_time
-    print(P_prev.individuals)
+
     return [total_time,i,best_individual,best_i]  # Zwrócenie czasu trwania algorytmu,liczby iteracji,najlepszego osobonika, oraz w której iteracji został znaleziony
 

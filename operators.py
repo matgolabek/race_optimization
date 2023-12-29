@@ -4,7 +4,7 @@ from population import NextPopulation,Individual,PartialIndividual
 from typing import Union
 import copy
 
-
+#Operatory mutacji:
 def mutate_aggression(population: NextPopulation, probability: float = 0.03) -> None:
     """
     Mutacja tylko agresji z zadanym prawdopodobieństwem (domyślnie 0.05)
@@ -23,7 +23,6 @@ def mutate_aggression(population: NextPopulation, probability: float = 0.03) -> 
                 new_aggression = random.choices(aggressions, [0.25, 0.25, 0.25, 0.25])[0]
                 gene.aggression = new_aggression
         individual.update_fitness(copy.deepcopy(population.circuit))
-
 
 def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
     """
@@ -44,7 +43,6 @@ def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
                     gene.pit = Pit.NO
         individual.update_fitness(copy.deepcopy(population.circuit))
 
-
 def mutate_compound(population: NextPopulation, probability: float = 0.05) -> None:
     """
     Mutacja rodzaju meszanki stopu z zadanym prawdpopodbieństwem (domyślnie 0.03)
@@ -63,7 +61,7 @@ def mutate_compound(population: NextPopulation, probability: float = 0.05) -> No
                 gene.compound = random.choices(compounds, [0.5, 0.5])[0]
         individual.update_fitness(copy.deepcopy(population.circuit))
 
-
+#Operatory krzyżowania:
 def cross(population: NextPopulation, random_division_point: bool = False) -> None:
     """
     Krzyżowanie z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
@@ -82,17 +80,17 @@ def cross(population: NextPopulation, random_division_point: bool = False) -> No
         else:
             midpoint = parent1.size // 2
 
-        N = population.size
+        child1 = parent1
+        child2 = parent2
 
-        new_list_of_laps1 = parent1.list_of_laps[:midpoint] + parent2.list_of_laps[midpoint:]
-        new_list_of_laps2 = parent2.list_of_laps[:midpoint] + parent1.list_of_laps[midpoint:]
+        child1.list_of_laps = parent1.list_of_laps[:midpoint] + parent2.list_of_laps[midpoint:]
+        child2.list_of_laps = parent2.list_of_laps[:midpoint] + parent1.list_of_laps[midpoint:]
         
-        child1 = Individual(new_list_of_laps1,copy.deepcopy(population.circuit))
-        child2 = Individual(new_list_of_laps2,copy.deepcopy(population.circuit))
+        child1.update_fitness(copy.deepcopy(population.circuit))
+        child2.update_fitness(copy.deepcopy(population.circuit))
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
-
 
 def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bool = False) -> None:
     """
@@ -122,18 +120,83 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
                     no_pit -= 1
             prev_compound = gene.compound
 
-        N = population.size
+        child1 = parent1
+        child2 = parent2
 
-        new_list_of_laps1 = parent1.list_of_laps[:division_idx] + parent2.list_of_laps[division_idx:]
-        new_list_of_laps2 = parent2.list_of_laps[:division_idx] + parent1.list_of_laps[division_idx:]
+        child1.list_of_laps = parent1.list_of_laps[:division_idx] + parent2.list_of_laps[division_idx:]
+        child2.list_of_laps = parent2.list_of_laps[:division_idx] + parent1.list_of_laps[division_idx:]
         
-        child1 = Individual(new_list_of_laps1,copy.deepcopy(population.circuit))
-        child2 = Individual(new_list_of_laps2,copy.deepcopy(population.circuit))
+        child1.update_fitness(copy.deepcopy(population.circuit))
+        child2.update_fitness(copy.deepcopy(population.circuit))
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
 
+def cross_agression(population: NextPopulation, random_division_point: bool = False) -> None:
+    """
+    Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
+    :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
+    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :return: None
+    """
+    while population.picked_parents:
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent1 = population.picked_parents.pop(inx)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
 
+        if random_division_point:
+            midpoint = int(parent1.size * random.random())
+        else:
+            midpoint = parent1.size // 2
+
+        child1 = parent1
+        child2 = parent2
+
+        for i in range(midpoint):
+            child1.list_of_laps[i].aggression = parent1.list_of_laps[i].aggression
+            child2.list_of_laps[i].aggression = parent2.list_of_laps[i].aggression
+                                   
+        for i in range(midpoint,parent1.size):
+            child1.list_of_laps[i].aggression = parent2.list_of_laps[i].aggression
+            child2.list_of_laps[i].aggression = parent1.list_of_laps[i].aggression
+
+        child1.update_fitness(copy.deepcopy(population.circuit))
+        child2.update_fitness(copy.deepcopy(population.circuit))
+
+        population.new_individuals.append(child1)
+        population.new_individuals.append(child2)
+
+def cross_2_points(population: NextPopulation) -> None:
+    """
+    2 losowe punkty krzyżowania
+    :param population:
+    :return: None
+    """
+
+    while population.picked_parents:
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent1 = population.picked_parents.pop(inx)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
+
+        point1 = random.randint(0, len(parent1))
+        point2 = random.choice([i for i in range(len(parent1)) if i != point1])
+        #point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
+
+        child1 = parent1
+        child2 = parent2
+
+        child1.list_of_laps = parent1.list_of_laps[:point1] + parent2.list_of_laps[point1:point2] + parent1.list_of_laps[point2:]
+        child2.list_of_laps = parent2.list_of_laps[:point1] + parent1.list_of_laps[point1:point2] + parent2.list_of_laps[point2:]
+
+        child1.update_fitness(copy.deepcopy(population.circuit))
+        child2.update_fitness(copy.deepcopy(population.circuit))        
+
+        population.new_individuals.append(child1)
+        population.new_individuals.append(child2)
+
+#Metody selekcji:
 def pick_parents_tournament(population: NextPopulation, m: int, n: int) -> None:
     """
     Wybranie rodziców turniejowo w m-podzbiorach n-elementowych
@@ -149,7 +212,6 @@ def pick_parents_tournament(population: NextPopulation, m: int, n: int) -> None:
         subsets.append(random.sample(population.individuals, n))
     for subset in subsets:
         population.picked_parents.append(min(subset, key = lambda x: x.fitness))
-
 
 def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: bool = False) -> None:
     """
@@ -178,7 +240,6 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
             picked_individual = population.individuals.pop(idx)
             sum_fitness -= picked_individual.fitness
             population.picked_parents.append(picked_individual)
-
 
 def adjust_population(population: NextPopulation, best_ancestors: bool = False, elitist: List[Individual] = []) -> None:
     """
@@ -211,47 +272,6 @@ def adjust_population(population: NextPopulation, best_ancestors: bool = False, 
             random_idx = random.randint(0, len(population.individuals))
             population.new_individuals.append(population.individuals.pop(random_idx))
 
-
-def cross_agression(population: NextPopulation, random_division_point: bool = False) -> None:
-    """
-    Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
-    :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
-    :param population: (Union[NextPopulation, StartPopulation]) : populacja
-    :return: None
-    """
-    while population.picked_parents:
-        inx = random.randint(0, len(population.picked_parents) - 1)
-        parent1 = population.picked_parents.pop(inx)
-        inx = random.randint(0, len(population.picked_parents) - 1)
-        parent2 = population.picked_parents.pop(inx)
-
-        if random_division_point:
-            midpoint = int(parent1.size * random.random())
-        else:
-            midpoint = parent1.size // 2
-
-        N = population.size
-
-        new_aggression1 = []
-        new_aggression2 = []
-
-        for i in range(midpoint):
-            new_aggression1.append(parent1.list_of_laps[i].aggression)
-            new_aggression2.append(parent2.list_of_laps[i].aggression)
-
-        for i in range(midpoint,parent1.size):
-            new_aggression1.append(parent2.list_of_laps[i].aggression)
-            new_aggression2.append(parent1.list_of_laps[i].aggression)
-        
-        new_list_of_laps1 = PartialIndividual(parent1.list_of_laps[0],new_aggression1,parent1.list_of_laps[2])
-        new_list_of_laps2 = PartialIndividual(parent2.list_of_laps[0],new_aggression2,parent2.list_of_laps[2])
-
-        child1 = Individual(N, new_list_of_laps1,copy.deepcopy(population.circuit))
-        child2 = Individual(N, new_list_of_laps2,copy.deepcopy(population.circuit))
-
-        population.new_individuals.append(child1)
-        population.new_individuals.append(child2)
-
 def elitist_selection(population: NextPopulation, n: int = 5) -> List[Individual]:
     """
     Wybranie jakiejś małej grupy osobników, która przechodzi od razu do następnej populacji, czyli
@@ -272,28 +292,3 @@ def elitist_selection(population: NextPopulation, n: int = 5) -> List[Individual
         return best_individuals
     else:
         return None
-
-
-def cross_2_points(population: NextPopulation) -> None:
-    """
-    2 losowe punkty krzyżowania
-    :param population:
-    :return: None
-    """
-
-    while population.picked_parents:
-        inx = random.randint(0, len(population.picked_parents) - 1)
-        parent1 = population.picked_parents.pop(inx)
-        inx = random.randint(0, len(population.picked_parents) - 1)
-        parent2 = population.picked_parents.pop(inx)
-
-        point1 = random.randint(0, len(parent1))
-        point2 = random.choice([i for i in range(len(parent1)) if i != point1])
-        #point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
-
-
-        child1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
-        child2 = parent2[:point1] + parent1[point1:point2] + parent2[point2:]
-
-        population.new_individuals.append(child1)
-        population.new_individuals.append(child2)
