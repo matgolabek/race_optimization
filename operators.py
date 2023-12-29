@@ -58,7 +58,12 @@ def mutate_compound(population: NextPopulation, probability: float = 0.05) -> No
             if change:
                 compounds = list(Compound)
                 compounds.remove(gene.compound)
-                gene.compound = random.choices(compounds, [0.5, 0.5])[0]
+                new_compund = random.choices(compounds, [0.5, 0.5])[0]
+                i = individual.list_of_laps.index(gene)
+                gene.compound = new_compund
+                while individual.list_of_laps[i+1].pit != 1 and i<48:
+                    individual.list_of_laps[i+1].compound = new_compund
+                    i+=1
         individual.update_fitness(copy.deepcopy(population.circuit))
 
 #Operatory krzyżowania:
@@ -180,7 +185,7 @@ def cross_2_points(population: NextPopulation) -> None:
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent2 = population.picked_parents.pop(inx)
 
-        point1 = random.randint(0, len(parent1))
+        point1 = random.randint(0, len(parent1.list_of_laps))
         point2 = random.choice([i for i in range(len(parent1)) if i != point1])
         #point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
 
@@ -221,13 +226,14 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
     :param equal_chances: (bool) : czy prawdopodobieństwo wyboru równe
     :return: None
     """
+    individuals_copy = copy.copy(population.individuals)
     if equal_chances:
         for _ in range(m):
-            random_idx = random.randint(0, len(population.individuals))
-            population.picked_parents.append(population.individuals.pop(random_idx))
+            random_idx = random.randint(0, len(individuals_copy))
+            population.picked_parents.append(individuals_copy.pop(random_idx))
     else:
         sum_fitness = 0
-        for individual in population.individuals:
+        for individual in individuals_copy:
             sum_fitness += individual.fitness
 
         for _ in range(m):
@@ -236,8 +242,8 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
             idx = -1
             while fitness_counter < random_value:
                 idx += 1
-                fitness_counter = population.individuals[idx].fitness
-            picked_individual = population.individuals.pop(idx)
+                fitness_counter = individuals_copy[idx].fitness
+            picked_individual = individuals_copy.pop(idx)
             sum_fitness -= picked_individual.fitness
             population.picked_parents.append(picked_individual)
 

@@ -14,6 +14,8 @@ def time_function(list_of_laps ,circuit):
 
         if (n>0 and list_of_laps[n].compound!=list_of_laps[n-1].compound) or list_of_laps[n].pit==1 or n==0: #czy nastąpił pitstop lub zmiana opony 
             if n>0:
+                list_of_laps[n].pit= Pit.YES
+            if n>0:
                 k_pit += 1
             if list_of_laps[n].compound.value== Compound.SOFT.value: #zmiana na mieszankę miękką
                 if len(tires[Compound.SOFT.value])==0: #czy zostały jeszcze miękkie opony
