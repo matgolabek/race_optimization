@@ -5,8 +5,8 @@ from typing import List, Any
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QFormLayout, \
     QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, \
     QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox
-from PyQt6.QtCore import pyqtSlot, Qt
-from PyQt6.QtGui import QPixmap, QPainter, QColor
+from PyQt6.QtCore import pyqtSlot, QPoint, Qt
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPolygon
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 import matplotlib.pyplot as plt
@@ -272,6 +272,7 @@ class Config(QWidget):
         self.layout_circuit.itemAt(1, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_no_laps)
         self.layout_circuit.itemAt(2, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_track_distance)
         self.layout_circuit.itemAt(3, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_t_pit)
+        self.layout_circuit.itemAt(4, QFormLayout.ItemRole.FieldRole).layout().itemAt(0).widget().clear()
         for tire in circuit.tires:
             self.layout_circuit.itemAt(4, QFormLayout.ItemRole.FieldRole).layout().itemAt(0).widget().addItem(str(tire))
 
@@ -442,8 +443,8 @@ class Solution(QWidget):
         
 
         self.label = QLabel()
-        self.canvas = QPixmap(400, 300)
-        self.canvas.fill(QColor("light blue"))
+        self.canvas = QPixmap(1900, 900)
+        self.canvas.fill(QColor("white"))
         self.label.setPixmap(self.canvas)
 
         self.button = QPushButton("Pokaż rozwiązanie")  # przycisk na rysowanie wykresu
@@ -461,8 +462,29 @@ class Solution(QWidget):
         Rysowanie odpowiedzi
         :return: None
         """
+        pits = [10, 30, 40]
         with QPainter(self.canvas) as painter:
-            painter.drawLine(10, 10, 300, 200)
+            painter_font = QFont()
+            painter_font.setPixelSize(20)
+            painter.setFont(painter_font)
+            h = 50
+            w = 50
+            for n in range(self.parent.circuit_no_laps):
+                if w > 1750:
+                    w = 50
+                    h += 200
+                if n in pits:
+                    triangle = QPolygon()
+                    triangle << QPoint(w + 100, h) << QPoint(w + 80, h - 35) << QPoint(w + 120, h - 35)
+                    painter.drawConvexPolygon(triangle)
+                    painter.drawText(w + 95, h - 15, "P")
+                painter.drawRect(w, h, 100, 100)
+                painter.fillRect(w + 1, h + 1, 99, 99, QColor(random.choice(["yellow", "red", "light grey"])))
+                if n < 9:
+                    painter.drawText(w + 45, h + 60, str(n + 1))
+                else:
+                    painter.drawText(w + 40, h + 60, str(n + 1))
+                w += 100
         self.label.setPixmap(self.canvas)
         
 
