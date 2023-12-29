@@ -5,7 +5,7 @@ from typing import List, Any
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QFormLayout, \
     QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, \
     QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import pyqtSlot, Qt
 from PyQt6.QtGui import QPixmap, QPainter, QColor
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
 
         # USTAWIENIA OKNA
 
-        self.resize(800, 600)  # rozmiar
-        self.setWindowTitle('Race optimization')  # nazwa okna
+        self.resize(1200, 800)  # rozmiar
+        self.setWindowTitle('Optymalizacja wyścigu')  # nazwa okna
 
         tabs = QTabWidget()  # zakładki Konfiguracja, Rozwiązanie, Wykres
         tabs.setTabPosition(QTabWidget.TabPosition.North)  # pozycja zakłedek
@@ -61,6 +61,8 @@ class MainWindow(QMainWindow):
         tabs.addTab(Chart(self), 'Wykres')  # dodanie zakładek Wykres
 
         self.setCentralWidget(tabs)  # umieszczenie zakładek w oknie
+
+        self.showMaximized()  # otwiera na pełnym ekranie
 
 # ZAKŁADKI
 
@@ -437,13 +439,12 @@ class Solution(QWidget):
         super(Solution, self).__init__()
 
         self.parent = parent  # wskaźnik na rodzica
+        
 
         self.label = QLabel()
-        canvas = QPixmap(400, 300)
-        canvas.fill(QColor("white"))
-        self.label.setPixmap(canvas)
-
-        self.painter = QPainter(self.label.pixmap())
+        self.canvas = QPixmap(400, 300)
+        self.canvas.fill(QColor("light blue"))
+        self.label.setPixmap(self.canvas)
 
         self.button = QPushButton("Pokaż rozwiązanie")  # przycisk na rysowanie wykresu
         self.button.clicked.connect(self.draw_solution)
@@ -455,15 +456,14 @@ class Solution(QWidget):
         layout_main.addWidget(self.button)
         self.setLayout(layout_main)
 
-    @pyqtSlot()
     def draw_solution(self) -> None:
         """
         Rysowanie odpowiedzi
         :return: None
         """
-        self.painter.drawLine(10, 10, 300, 200)
-        self.painter.end()
-        self.label.update()
+        with QPainter(self.canvas) as painter:
+            painter.drawLine(10, 10, 300, 200)
+        self.label.setPixmap(self.canvas)
         
 
 
