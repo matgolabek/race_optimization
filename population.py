@@ -49,10 +49,10 @@ class NextPopulation:
         self.circuit = c
         self.size = len(individuals)
 
-    def start_population(self,size) -> None:
+    def start_population(self, size) -> None:
         """
         :param size (int) : rozmiar populacji
-        :param infividuals (List[Inddividuals]) : rodzice przekazani z poprzedniej populacji
+        :param individuals (List[Inddividuals]) : rodzice przekazani z poprzedniej populacji
         """
         N = self.circuit.no_laps
         # tworzenie losowych osobników

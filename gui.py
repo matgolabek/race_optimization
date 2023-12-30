@@ -11,6 +11,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 import matplotlib.pyplot as plt
 import matplotlib
+from ae import evolutionary_algorithm
 
 matplotlib.use('TkAgg')
 
@@ -38,14 +39,26 @@ class MainWindow(QMainWindow):
 
         self.iterations = 0
         self.population_size = 0
-        self.selection_type = ""
-        self.is_elitist = False
-        self.elitist_size = 5
-        self.cross_method = ""
+        self.selection_type = 99
+        # self.is_elitist = False
+        # self.elitist_size = 5
+        self.parents_selected_num = 0
+        self.cross_method = 99
         self.cross_probability = 0
+
+        self.mutate_aggression = 0
+        self.mutate_compound = 0
+        self.mutate_pitstop = 0
         self.mutate_aggression_probability = 0
         self.mutate_compound_probability = 0
         self.mutate_pitstop_probability = 0
+
+        # ROZWIĄZANIA
+        self.time = 0
+        self.total_iterations_num = 0
+        self.best_individual = None
+        self.best_iteration = 0
+        self.best_individuals = []
 
         # USTAWIENIA OKNA
 
@@ -63,6 +76,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(tabs)  # umieszczenie zakładek w oknie
 
         self.showMaximized()  # otwiera na pełnym ekranie
+
 
 # ZAKŁADKI
 
@@ -120,11 +134,11 @@ class Config(QWidget):
         self.layout_circuit.addRow('Opony:', tires_layout)
 
         # layout_config - przyciski
-        button_read = QPushButton("Wczytaj dane z pliku")   # wczytywanie z pliku
+        button_read = QPushButton("Wczytaj dane z pliku")  # wczytywanie z pliku
         button_read.setFixedSize(200, 50)
         button_read.clicked.connect(self.choose_file)
 
-        button_write = QPushButton("Zapisz wprowadzone dane")   # zapisywanie do pliku
+        button_write = QPushButton("Zapisz wprowadzone dane")  # zapisywanie do pliku
         button_write.setFixedSize(200, 50)
         button_write.clicked.connect(self.save_data_to_file)
 
@@ -132,7 +146,8 @@ class Config(QWidget):
         spin_iteration_number = QSpinBox(self)
         spin_iteration_number.setRange(1, 1000)
         label_iteration = QLabel("Liczba iteracji:")
-        spin_iteration_number.valueChanged.connect(self.set_iteration_number)   # jeśli zmieni się wartość, to przekazywana jest do funkcji
+        spin_iteration_number.valueChanged.connect(
+            self.set_iteration_number)  # jeśli zmieni się wartość, to przekazywana jest do funkcji
         spin_iteration_number.setFixedSize(50, 20)
 
         # wybór wielkości populacji
@@ -151,7 +166,15 @@ class Config(QWidget):
         for button in radio_select_all:
             button.toggled.connect(lambda state, toggled_button=button: self.set_selection_method(toggled_button))
             layout_selection.addWidget(button)
+        label_parents_num = QLabel("Jaki % populacji ma zostać rodzicami?")
+        spin_parents_num = QSpinBox()
+        spin_parents_num.setRange(0, 100)
+        spin_parents_num.setFixedSize(50, 20)
+        spin_parents_num.valueChanged.connect(self.set_percentage_to_be_seletcted)
+        layout_selection.addWidget(label_parents_num)
+        layout_selection.addWidget(spin_parents_num)
 
+        """
         check_elitist = QCheckBox("Elitarna?")  # czy selekcja ma być elitarna? jak checkbox zaznaczony to przekaż liczbę osobników do zostawienia w next gen
         spin_elitist = QSpinBox()
         spin_elitist.setRange(5, 1000)
@@ -160,6 +183,7 @@ class Config(QWidget):
 
         layout_selection.addWidget(check_elitist)
         layout_selection.addWidget(spin_elitist)
+        """
         box_selection.setLayout(layout_selection)
 
         # wybór operatora krzyżowania + prawdopodobieństwo krzyżowania
@@ -234,7 +258,11 @@ class Config(QWidget):
         layout_mutate.addWidget(spin3_mutate)
         box_mutate.setLayout(layout_mutate)
 
-        layout_config.addWidget(button_read)    # dodanie tych wszystkich rzeczy do layoutu
+        button_start_alg = QPushButton("Algorytm ewolucyjny - start")  # przycisk rozpoczynający algorytm
+        button_start_alg.setFixedSize(200, 50)
+        button_start_alg.clicked.connect(self.start_ae)
+
+        layout_config.addWidget(button_read)  # dodanie tych wszystkich rzeczy do layoutu
         layout_config.addWidget(button_write)
         layout_config.addWidget(label_iteration)
         layout_config.addWidget(spin_iteration_number)
@@ -243,6 +271,7 @@ class Config(QWidget):
         layout_config.addWidget(box_selection)
         layout_config.addWidget(box_cross)
         layout_config.addWidget(box_mutate)
+        layout_config.addWidget(button_start_alg)
 
         layout_config.addStretch()  # wszystko się wyświetla jedno pod drugim
         layout_config.setSpacing(10)
@@ -267,10 +296,11 @@ class Config(QWidget):
         self.parent.circuit_no_laps = circuit.no_laps
         self.parent.circuit_t_pit = circuit.t_pit
         self.parent.circuit_tires = circuit.tires
-        
+
         self.layout_circuit.itemAt(0, QFormLayout.ItemRole.FieldRole).widget().setText(self.parent.circuit_name)
         self.layout_circuit.itemAt(1, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_no_laps)
-        self.layout_circuit.itemAt(2, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_track_distance)
+        self.layout_circuit.itemAt(2, QFormLayout.ItemRole.FieldRole).widget().setValue(
+            self.parent.circuit_track_distance)
         self.layout_circuit.itemAt(3, QFormLayout.ItemRole.FieldRole).widget().setValue(self.parent.circuit_t_pit)
         self.layout_circuit.itemAt(4, QFormLayout.ItemRole.FieldRole).layout().itemAt(0).widget().clear()
         for tire in circuit.tires:
@@ -308,20 +338,15 @@ class Config(QWidget):
         :return: Nic
         """
         if toggled_button.text() == "Ruletka":
-            self.parent.selection_type = "roulette"
+            self.parent.selection_type = 0
         elif toggled_button.text() == "Turniej":
-            self.parent.selection_type = "tournament"
+            self.parent.selection_type = 1
 
-    def set_elitist_param(self, checkbox, value_from_spinbox) -> None:
+    def set_percentage_to_be_seletcted(self, value_from_spinbox) -> None:
         """
-        Jeśli zaznaczony będzie checkbox, to odpowiednia wartość zostanie przypisana
-        :return: NIIIC
+        Ile procent osobników ma zostać rodzicami?
         """
-        if checkbox.checkState():
-            self.parent.is_elitist = True
-            self.parent.elitist_size = value_from_spinbox
-        else:
-            self.parent.is_elitist = False
+        self.parent.parents_selected_num = value_from_spinbox / 100
 
     def set_cross_method(self, toggled_button) -> None:
         """
@@ -329,15 +354,15 @@ class Config(QWidget):
         :return: NiC
         """
         if toggled_button.text() == "Jednopunktowe środek":
-            self.parent.cross_method = "1_point_mid"
+            self.parent.cross_method = 0
         elif toggled_button.text() == "Jednopunktowe losowo":
-            self.parent.cross_method = "1_point_random"
+            self.parent.cross_method = 1
         elif toggled_button.text() == "Przed pitstopem":
-            self.parent.cross_method = "before_pit"
+            self.parent.cross_method = 2
         elif toggled_button.text() == "Tylko agresja":
-            self.parent.cross_method = "aggression"
+            self.parent.cross_method = 3
         elif toggled_button.text() == "Dwupunktowe losowo":
-            self.parent.cross_method = "2_points_random"
+            self.parent.cross_method = 4
 
     def set_cross_probability(self, value_from_spinbox):
         """
@@ -354,7 +379,10 @@ class Config(QWidget):
         :return:
         """
         if checkbox.checkState():
-            self.parent.mutate_aggression_probability = value / 100
+            self.parent.mutate_aggression = 1  # jeśli checkbox zaznaczony
+            self.parent.mutate_aggression_probability = value / 100  # prawodopodobieństwo zmieni się tylko jeśli zaznaczony jest checkbox
+        else:
+            self.parent.mutate_aggression = 0
 
     def set_mutate_compound_probability(self, checkbox, value):
         """
@@ -364,7 +392,10 @@ class Config(QWidget):
         :return:
         """
         if checkbox.checkState():
+            self.parent.mutate_compound = 1
             self.parent.mutate_compound_probability = value / 100
+        else:
+            self.parent.mutate_compound = 0
 
     def set_mutate_pitstop_probability(self, checkbox, value):
         """
@@ -374,7 +405,30 @@ class Config(QWidget):
         :return:
         """
         if checkbox.checkState():
+            self.parent.mutate_pitstop = 1
             self.parent.mutate_pitstop_probability = value / 100
+        else:
+            self.parent.mutate_pitstop = 0
+
+    def start_ae(self):
+        """
+        Przekazanie danych do algorytmu i liczenie
+        """
+        new_circuit = Circuit(self.parent.circuit_name, self.parent.circuit_track_distance, self.parent.circuit_no_laps,
+                              self.parent.circuit_t_pit, self.parent.circuit_tires)
+
+        solution = evolutionary_algorithm(self.parent.population_size, new_circuit, self.parent.iterations,
+                                          self.parent.parents_selected_num, self.parent.selection_type,
+                                          self.parent.cross_method, self.parent.cross_probability,
+                                          self.parent.mutate_aggression,
+                                          self.parent.mutate_aggression_probability, self.parent.mutate_compound,
+                                          self.parent.mutate_compound_probability, self.parent.mutate_pitstop,
+                                          self.parent.mutate_pitstop_probability)
+        self.parent.time = solution[0]
+        self.parent.total_iterations_num = solution[1]
+        self.parent.best_individual = solution[2]
+        self.parent.best_iteration = solution[3]
+        self.parent.best_individuals = solution[4]
 
     @pyqtSlot()
     def add(self) -> None:
@@ -440,7 +494,6 @@ class Solution(QWidget):
         super(Solution, self).__init__()
 
         self.parent = parent  # wskaźnik na rodzica
-        
 
         self.label = QLabel()
         self.canvas = QPixmap(1900, 900)
@@ -486,7 +539,6 @@ class Solution(QWidget):
                     painter.drawText(w + 40, h + 60, str(n + 1))
                 w += 100
         self.label.setPixmap(self.canvas)
-        
 
 
 class Chart(QWidget):
@@ -524,8 +576,9 @@ class Chart(QWidget):
         ax.clear()
         ax.step([1, 2, 3, 4, 5, 6], [10, 20, 30, 40, 20, 10])
         ax.set(xlabel="Liczba iteracji", ylabel="Wartość funkcji celu",
-                title="Wartość funkcji celu od liczby iteracji", xlim=[1, self.parent.circuit_no_laps])
+               title="Wartość funkcji celu od liczby iteracji", xlim=[1, self.parent.circuit_no_laps])
         self.canvas.draw()
+
 
 # DODANIE OPONY DO ZAKŁADKI CONFIG
 
