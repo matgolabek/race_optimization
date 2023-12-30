@@ -38,9 +38,9 @@ def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, par
     P_start.start_population(start_size)
     i = 0
     best_individuals = [] #list najlepszych osobników w każdej iteracji potrzebna do wykresu
-    best_individual = copy.copy(min(P_start.individuals, key=lambda x: x.fitness)) #najlepszy osobnik startowej populacji
+    best_individual = copy.deepcopy(min(P_start.individuals, key=lambda x: x.fitness)) #najlepszy osobnik startowej populacji
     best_individuals.append(best_individual)
-    print(best_individual)
+
     best_i = i #pierwsze pokolenie najlepszego osobnika
     # każdy osobnik populacji ma od razu przypisaną wartość przystosowania (f. celu)
     P_prev = P_start
@@ -69,7 +69,7 @@ def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, par
             elif cross_type == 3:
                 cross_agression(P_prev, True)
             elif cross_type == 4:
-                cross_2_points(P_prev)
+                cross_pit(P_prev)
             else: 
                 P_prev.new_individuals = P_prev.individuals
         else:
@@ -87,7 +87,7 @@ def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, par
         if mutation_pit == 1:
             mutate_pit(P_prev, mutation_prob3)
         
-        temp_best_individual = copy.copy(min(P_prev.new_individuals, key=lambda x: x.fitness))
+        temp_best_individual = copy.deepcopy(min(P_prev.new_individuals, key=lambda x: x.fitness))
         best_individuals.append(temp_best_individual)
         # sprawdzanie czy został znaleziony lepszy osobnik
         if best_individual.fitness>temp_best_individual.fitness:

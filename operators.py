@@ -37,10 +37,17 @@ def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
         for gene in individual.list_of_laps:
             change = random.choices([False, True], [1 - probability, probability])[0]
             if change:
-                if gene.pit == Pit.NO:
-                    gene.pit = Pit.YES
-                else:
+                if gene.pit == Pit.YES:
                     gene.pit = Pit.NO
+                    i = individual.list_of_laps.index(gene)
+                    if i>0: 
+                        new_compund = individual.list_of_laps[i-1].compound
+                        gene.compound = new_compund
+                        while i<48 and individual.list_of_laps[i+1].pit != 1 :
+                            individual.list_of_laps[i+1].compound = new_compund
+                            i+=1
+                else:
+                    pass
         individual.update_fitness(copy.deepcopy(population.circuit))
 
 def mutate_compound(population: NextPopulation, probability: float = 0.05) -> None:
@@ -55,13 +62,13 @@ def mutate_compound(population: NextPopulation, probability: float = 0.05) -> No
     for individual in population.new_individuals:
         for gene in individual.list_of_laps:
             change = random.choices([False, True], [1 - probability, probability])[0]
-            if change:
+            if  gene.pit ==1 and change:
                 compounds = list(Compound)
                 compounds.remove(gene.compound)
                 new_compund = random.choices(compounds, [0.5, 0.5])[0]
                 i = individual.list_of_laps.index(gene)
                 gene.compound = new_compund
-                while individual.list_of_laps[i+1].pit != 1 and i<48:
+                while i<48 and individual.list_of_laps[i+1].pit != 1 :
                     individual.list_of_laps[i+1].compound = new_compund
                     i+=1
         individual.update_fitness(copy.deepcopy(population.circuit))
