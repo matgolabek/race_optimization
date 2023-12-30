@@ -60,7 +60,7 @@ class NextPopulation:
         for i in range(size):
             list_of_laps = []     # każdy osobnik to N-elementowa lista krotek
             for lap in range(N):    # N okrążeń w każdym osobniku
-                pit = random.choices(list(Pit), weights=[0.86, 0.14])[0]  # PIT=YES z prawdopodobieństwem X
+                pit = random.choices(list(Pit), weights=[0.95, 0.05])[0]  # PIT=YES z prawdopodobieństwem X
                 aggression = random.choice(list(Aggression)) # agresja wybierana jest losowo      
                 if lap==0 or pit==Pit.YES:
                     compound = random.choice(list(Compound))   # rodzaj mieszanki ustalany, gdy wystąpi pitstop i nie zmienia sie do kolejnego pitstopu  

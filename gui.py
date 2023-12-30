@@ -37,8 +37,8 @@ class MainWindow(QMainWindow):
 
         # ZMIENNE ALGORYTMU
 
-        self.iterations = 0
-        self.population_size = 0
+        self.iterations = 100
+        self.population_size = 50
         self.selection_type = 99
         # self.is_elitist = False
         # self.elitist_size = 5
@@ -144,6 +144,7 @@ class Config(QWidget):
 
         # wybór liczby iteracji
         spin_iteration_number = QSpinBox(self)
+        spin_iteration_number.setValue(100)
         spin_iteration_number.setRange(1, 1000)
         label_iteration = QLabel("Liczba iteracji:")
         spin_iteration_number.valueChanged.connect(
@@ -152,6 +153,7 @@ class Config(QWidget):
 
         # wybór wielkości populacji
         spin_population_size = QSpinBox(self)
+        spin_population_size.setValue(50)
         spin_population_size.setRange(10, 1000)
         label_population = QLabel("Wielkość populacji:")
         spin_population_size.valueChanged.connect(self.set_population_size)
@@ -200,6 +202,7 @@ class Config(QWidget):
             layout_cross.addWidget(button)
 
         spin_cross_probability = QSpinBox()
+        spin_cross_probability.setValue(100)
         spin_cross_probability.setRange(0, 100)
         label_cross_probability = QLabel("Z prawdopodobieństwem [%]:")
         spin_cross_probability.valueChanged.connect(self.set_cross_probability)
@@ -515,28 +518,35 @@ class Solution(QWidget):
         Rysowanie odpowiedzi
         :return: None
         """
-        pits = [10, 30, 40]
         with QPainter(self.canvas) as painter:
             painter_font = QFont()
             painter_font.setPixelSize(20)
             painter.setFont(painter_font)
+            solution = self.parent.best_individual
             h = 50
             w = 50
             for n in range(self.parent.circuit_no_laps):
                 if w > 1750:
                     w = 50
                     h += 200
-                if n in pits:
+                if solution.list_of_laps[n].pit == Pit.YES:
                     triangle = QPolygon()
-                    triangle << QPoint(w + 100, h) << QPoint(w + 80, h - 35) << QPoint(w + 120, h - 35)
+                    triangle << QPoint(w, h) << QPoint(w - 20, h - 35) << QPoint(w + 20, h - 35)
                     painter.drawConvexPolygon(triangle)
-                    painter.drawText(w + 95, h - 15, "P")
+                    painter.drawText(w - 5, h - 15, "P")
                 painter.drawRect(w, h, 100, 100)
-                painter.fillRect(w + 1, h + 1, 99, 99, QColor(random.choice(["yellow", "red", "light grey"])))
+                if solution.list_of_laps[n].compound == Compound.SOFT:
+                    painter.fillRect(w + 1, h + 1, 99, 99, QColor("red"))
+                if solution.list_of_laps[n].compound == Compound.MEDIUM:
+                    painter.fillRect(w + 1, h + 1, 99, 99, QColor("yellow"))
+                if solution.list_of_laps[n].compound == Compound.HARD:
+                    painter.fillRect(w + 1, h + 1, 99, 99, QColor("light grey"))
                 if n < 9:
-                    painter.drawText(w + 45, h + 60, str(n + 1))
+                    painter.drawText(w + 45, h + 130, str(n + 1))
+                    painter.drawText(w + 45, h + 60, str(solution.list_of_laps[n].aggression.value))
                 else:
-                    painter.drawText(w + 40, h + 60, str(n + 1))
+                    painter.drawText(w + 40, h + 130, str(n + 1))
+                    painter.drawText(w + 40, h + 60, str(solution.list_of_laps[n].aggression.value))
                 w += 100
         self.label.setPixmap(self.canvas)
 
@@ -574,9 +584,11 @@ class Chart(QWidget):
         self.figure.clear()
         ax = self.figure.add_subplot()
         ax.clear()
-        ax.step([1, 2, 3, 4, 5, 6], [10, 20, 30, 40, 20, 10])
+        ax.step([i + 1 for i in range(self.parent.total_iterations_num + 1)], [individual.fitness for individual in self.parent.best_individuals])
+        ax.step([i for i in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)],
+                [self.parent.best_individual.fitness for _ in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)])
         ax.set(xlabel="Liczba iteracji", ylabel="Wartość funkcji celu",
-               title="Wartość funkcji celu od liczby iteracji", xlim=[1, self.parent.circuit_no_laps])
+               title="Wartość funkcji celu od liczby iteracji", xlim=[1, self.parent.total_iterations_num])
         self.canvas.draw()
 
 
