@@ -4,9 +4,9 @@ import time
 
 
 def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, parents_percentage: int,
-                           selection_type: int, cross_type: int, cross_prob: float, mutation_aggr: int,
-                           mutation_prob1: float, mutation_comp: int, mutation_prob2: float, mutation_pit: int,
-                           mutation_prob3: float):
+                           selection_type: int, cross_type: int, cross_prob: int, mutation_aggr: int,
+                           mutation_prob1: int, mutation_comp: int, mutation_prob2: int, mutation_pit: int,
+                           mutation_prob3: int):
     """
     Główny program algorytmu tworzący populacje bazową według 
     : param start_size (int) : wielkość początkowej populacji
@@ -15,16 +15,23 @@ def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, par
     : param parents_percentage (int) : ile procent rodziców poddawanych jest reprodukcji
     : param selection_type (int) : typ selekcji (rankingowa czy turniejowa)
     : param cross_type (int) : które krzyżowanie jest włączone
-    : param cross_prob (float) : prawdopodobieństwo krzyżowania w kolejych iteracjach
+    : param cross_prob (int) : prawdopodobieństwo krzyżowania w kolejych iteracjach
     : param mutation_aggr (int)) : czy mutacja agresji jest włączona
-    : param mutation_prob1 (float): prawdopodobieństwo występowania mutacji 1
+    : param mutation_prob1 (int): prawdopodobieństwo występowania mutacji 1
     : param mutation_comp (int) : czy mutacja mieszanki jest włączona
-    : param mutation_prob2 (float): prawdopodobieństwo występowania mutacji 2
+    : param mutation_prob2 (int): prawdopodobieństwo występowania mutacji 2
     : param mutation_pit (int) : czy mutacja pitstopu jest włączona
-    : param mutation_prob3 (float): prawdopodobieństwo występowania mutacji 3
+    : param mutation_prob3 (int): prawdopodobieństwo występowania mutacji 3
     : return : Lista czasu,liczby iteracji, najlepszego osobnika, iteracji w której został znaleziony, lista najlepszych osobników w kolejnych iteracjach
     """
     start_time = time.time() #czas początkowy
+
+    #zmiana procentów na ułamki:
+    parents_percentage = parents_percentage/100
+    cross_prob = cross_prob/100
+    mutation_prob1 = mutation_prob1/100
+    mutation_prob2 = mutation_prob1/100
+    mutation_prob3 = mutation_prob1/100
 
     # populacja bazowa
     P_start = NextPopulation([], circuit)

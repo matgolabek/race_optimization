@@ -77,8 +77,8 @@ def cross(population: NextPopulation, random_division_point: bool = False) -> No
     while population.picked_parents:
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
-        inx = random.randint(0, len(population.picked_parents) - 1) #### TU NIE WIEM O CO CHODZI
-        parent2 = population.picked_parents.pop(inx)  #### ZMIENIŁEM POP(0) NA POP(INX)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
 
         if random_division_point:
             midpoint = int(parent1.size * random.random())
@@ -108,15 +108,15 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
     while population.picked_parents:
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
-        inx = random.randint(0, len(population.picked_parents) - 1) #### TU NIE WIEM O CO CHODZI
-        parent2 = population.picked_parents.pop(inx)  #### ZMIENIŁEM POP(0) NA POP(INX)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
         if best_first:
             if parent1.fitness > parent2:
                 parent1, parent2 = parent2, parent1  # zamiana kolejności jak rodzic 2 był lepszy
 
         prev_compound = None
         division_idx = int(parent1.size * random.random())
-        for idx, gene in enumerate(parent1):
+        for idx, gene in enumerate(parent1.list_of_laps):
             if gene.pit == 1 or (prev_compound is not None and prev_compound != gene.compound):  # nastąpi pit stop
                 if no_pit == 1:
                     division_idx = idx
@@ -186,8 +186,7 @@ def cross_2_points(population: NextPopulation) -> None:
         parent2 = population.picked_parents.pop(inx)
 
         point1 = random.randint(0, len(parent1.list_of_laps))
-        point2 = random.choice([i for i in range(len(parent1)) if i != point1])
-        #point3 = random.choice([i for i in range(len(parent1)) if i != point1 and i != point2])
+        point2 = random.choice([i for i in range(len(parent1.list_of_laps)) if i != point1])
 
         child1 = parent1
         child2 = parent2
@@ -197,6 +196,41 @@ def cross_2_points(population: NextPopulation) -> None:
 
         child1.update_fitness(copy.deepcopy(population.circuit))
         child2.update_fitness(copy.deepcopy(population.circuit))        
+
+        population.new_individuals.append(child1)
+        population.new_individuals.append(child2)
+
+def cross_pit(population: NextPopulation, random_division_point: bool = False) -> None:
+    """
+    Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
+    :param random_division_point: (bool) : czy losować punkt podziału do krzyżowania
+    :param population: (Union[NextPopulation, StartPopulation]) : populacja
+    :return: None
+    """
+    while population.picked_parents:
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent1 = population.picked_parents.pop(inx)
+        inx = random.randint(0, len(population.picked_parents) - 1)
+        parent2 = population.picked_parents.pop(inx)
+
+        if random_division_point:
+            midpoint = int(parent1.size * random.random())
+        else:
+            midpoint = parent1.size // 2
+
+        child1 = parent1
+        child2 = parent2
+
+        for i in range(midpoint):
+            child1.list_of_laps[i].pit = parent1.list_of_laps[i].pit
+            child2.list_of_laps[i].pit = parent2.list_of_laps[i].pit
+                                   
+        for i in range(midpoint,parent1.size):
+            child1.list_of_laps[i].pit = parent2.list_of_laps[i].pit
+            child2.list_of_laps[i].pit = parent1.list_of_laps[i].pit
+
+        child1.update_fitness(copy.deepcopy(population.circuit))
+        child2.update_fitness(copy.deepcopy(population.circuit))
 
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
@@ -242,7 +276,7 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
             idx = -1
             while fitness_counter < random_value:
                 idx += 1
-                fitness_counter = individuals_copy[idx].fitness
+                fitness_counter += individuals_copy[idx].fitness
             picked_individual = individuals_copy.pop(idx)
             sum_fitness -= picked_individual.fitness
             population.picked_parents.append(picked_individual)
