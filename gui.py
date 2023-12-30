@@ -4,8 +4,8 @@ from population import *
 from typing import List, Any
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QFormLayout, \
     QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, \
-    QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox
-from PyQt6.QtCore import pyqtSlot, QPoint, Qt
+    QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox, QScrollArea
+from PyQt6.QtCore import pyqtSlot, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPolygon
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
@@ -37,19 +37,19 @@ class MainWindow(QMainWindow):
 
         # ZMIENNE ALGORYTMU
 
-        self.iterations = 100
+        self.iterations = 500
         self.population_size = 50
-        self.selection_type = 99
+        self.selection_type = 0
         # self.is_elitist = False
         # self.elitist_size = 5
-        self.parents_selected_num = 0
-        self.cross_method = 99
-        self.cross_probability = 0
+        self.parents_selected_num = 0.8
+        self.cross_method = 0
+        self.cross_probability = 1
 
-        self.mutate_aggression = 0
+        self.mutate_aggression = 1
         self.mutate_compound = 0
         self.mutate_pitstop = 0
-        self.mutate_aggression_probability = 0
+        self.mutate_aggression_probability = 0.1
         self.mutate_compound_probability = 0
         self.mutate_pitstop_probability = 0
 
@@ -144,8 +144,8 @@ class Config(QWidget):
 
         # wybór liczby iteracji
         spin_iteration_number = QSpinBox(self)
-        spin_iteration_number.setValue(100)
         spin_iteration_number.setRange(1, 1000)
+        spin_iteration_number.setValue(500)
         label_iteration = QLabel("Liczba iteracji:")
         spin_iteration_number.valueChanged.connect(
             self.set_iteration_number)  # jeśli zmieni się wartość, to przekazywana jest do funkcji
@@ -163,6 +163,7 @@ class Config(QWidget):
         box_selection = QGroupBox("Selekcja")
         layout_selection = QVBoxLayout()
         radio_select1 = QRadioButton("Ruletka")
+        radio_select1.setChecked(True)
         radio_select2 = QRadioButton("Turniej")
         radio_select_all = [radio_select1, radio_select2]
         for button in radio_select_all:
@@ -170,6 +171,7 @@ class Config(QWidget):
             layout_selection.addWidget(button)
         label_parents_num = QLabel("Jaki % populacji ma zostać rodzicami?")
         spin_parents_num = QSpinBox()
+        spin_parents_num.setValue(80)
         spin_parents_num.setRange(0, 100)
         spin_parents_num.setFixedSize(50, 20)
         spin_parents_num.valueChanged.connect(self.set_percentage_to_be_seletcted)
@@ -192,6 +194,7 @@ class Config(QWidget):
         box_cross = QGroupBox("Operatory krzyżowania")
         layout_cross = QVBoxLayout()
         radio1 = QRadioButton("Jednopunktowe środek")
+        radio1.setChecked(True)
         radio2 = QRadioButton("Jednopunktowe losowo")
         radio3 = QRadioButton("Przed pitstopem")
         radio4 = QRadioButton("Tylko agresja")
@@ -202,8 +205,8 @@ class Config(QWidget):
             layout_cross.addWidget(button)
 
         spin_cross_probability = QSpinBox()
-        spin_cross_probability.setValue(100)
         spin_cross_probability.setRange(0, 100)
+        spin_cross_probability.setValue(100)
         label_cross_probability = QLabel("Z prawdopodobieństwem [%]:")
         spin_cross_probability.valueChanged.connect(self.set_cross_probability)
         spin_cross_probability.setFixedSize(50, 20)
@@ -215,9 +218,11 @@ class Config(QWidget):
         box_mutate = QGroupBox("Operatory mutacji")
         layout_mutate = QVBoxLayout()
         check1_mutate = QCheckBox("Agresja")
+        check1_mutate.setChecked(True)
         label1_mutate = QLabel("Z prawdopodobieństwem [%]:")
         spin1_mutate = QSpinBox()
         spin1_mutate.setRange(0, 100)
+        spin1_mutate.setValue(10)
         spin1_mutate.setFixedSize(50, 20)
         check2_mutate = QCheckBox("Mieszanka")
         label2_mutate = QLabel("Z prawdopodobieństwem [%]:")
@@ -498,6 +503,7 @@ class Solution(QWidget):
 
         self.parent = parent  # wskaźnik na rodzica
 
+        self.scroll_area = QScrollArea()
         self.label = QLabel()
         self.canvas = QPixmap(1900, 900)
         self.canvas.fill(QColor("white"))
@@ -509,7 +515,8 @@ class Solution(QWidget):
         layout_main = QVBoxLayout()  # układ główny
 
         # USTAWIENIA UKŁADU
-        layout_main.addWidget(self.label)
+        self.scroll_area.setWidget(self.label)
+        layout_main.addWidget(self.scroll_area)
         layout_main.addWidget(self.button)
         self.setLayout(layout_main)
 
@@ -543,11 +550,44 @@ class Solution(QWidget):
                     painter.fillRect(w + 1, h + 1, 99, 99, QColor("light grey"))
                 if n < 9:
                     painter.drawText(w + 45, h + 130, str(n + 1))
-                    painter.drawText(w + 45, h + 60, str(solution.list_of_laps[n].aggression.value))
                 else:
                     painter.drawText(w + 40, h + 130, str(n + 1))
-                    painter.drawText(w + 40, h + 60, str(solution.list_of_laps[n].aggression.value))
+                painter.drawText(w + 45, h + 57, str(solution.list_of_laps[n].aggression.value))
+                painter.drawEllipse(w + 35, h + 35, 30, 30)
                 w += 100
+            w = 50
+            h += 200
+            painter_font.setBold(True)
+            painter.setFont(painter_font)
+            painter.drawText(w, h, "Legenda: ")
+
+            painter.drawText(w + 1000, h, "Parametry:")
+
+            h += 50
+            painter_font.setBold(False)
+            painter.setFont(painter_font)
+            painter.drawText(w, h, "1")
+            painter.drawText(w + 40, h, "- nr okrążenia")
+
+            hours = int(solution.fitness / 60)
+            minutes = int(solution.fitness % 60)
+            seconds = (solution.fitness * 60) % 60
+            print(solution.fitness, hours, minutes, seconds)
+            painter.drawText(w + 1000, h, "Najlepsze rozwiązanie: {} h {} min {:.3f} s".format(hours, minutes, seconds))
+
+            h += 50
+            painter.drawText(w, h, "0")
+            painter.drawEllipse(w - 10, h - 22, 30, 30)
+            painter.drawText(w + 40, h, "- agresja jazdy na danym okrążeniu od 0 do 4, gdzie 0 to brak a 4 to największa")
+
+            painter.drawText(w + 1000, h, "Czas liczenia: {:.3f} s".format(self.parent.time))
+
+            h += 50
+            painter.fillRect(w - 5, h - 15, 20, 20, QColor("red"))
+            painter.drawText(w + 40, h, "- rodzaj mieszanki, gdzie czerwony to miękka, żółty to pośredna, szary to twarda")
+
+            painter.drawText(w + 1000, h, "Rozwiązanie znalezione w iteracji: {}".format(self.parent.best_iteration))
+
         self.label.setPixmap(self.canvas)
 
 
@@ -584,11 +624,11 @@ class Chart(QWidget):
         self.figure.clear()
         ax = self.figure.add_subplot()
         ax.clear()
-        ax.step([i + 1 for i in range(self.parent.total_iterations_num + 1)], [individual.fitness for individual in self.parent.best_individuals])
+        ax.step([i for i in range(self.parent.total_iterations_num + 1)], [individual.fitness for individual in self.parent.best_individuals])
         ax.step([i for i in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)],
                 [self.parent.best_individual.fitness for _ in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)])
         ax.set(xlabel="Liczba iteracji", ylabel="Wartość funkcji celu",
-               title="Wartość funkcji celu od liczby iteracji", xlim=[1, self.parent.total_iterations_num])
+               title="Wartość funkcji celu od liczby iteracji", xlim=[0, self.parent.total_iterations_num])
         self.canvas.draw()
 
 
