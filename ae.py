@@ -26,12 +26,14 @@ def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, par
     """
     start_time = time.time() #czas początkowy
 
-    #zmiana procentów na ułamki:
+    #zmiana procentów na ułamki:   NIE MA POTRZEBY ONE SĄ ZAPISYWANE W PARAMETRACH ALGORYTMU JUZ JAKO UŁAMKI
+    """
     parents_percentage = parents_percentage/100
     cross_prob = cross_prob/100
     mutation_prob1 = mutation_prob1/100
     mutation_prob2 = mutation_prob1/100
     mutation_prob3 = mutation_prob1/100
+    """
 
     # populacja bazowa
     P_start = NextPopulation([], circuit)
