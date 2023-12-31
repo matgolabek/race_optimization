@@ -154,5 +154,8 @@ def load_data(file_name: str) -> Circuit:
     :param file_name: (str) : nazwa pliku
     :return: (Circuit) : Tor
     """
-    with open(file_name, 'rb') as file:
-        return pickle.load(file)
+    try:
+        with open(file_name, 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        return None

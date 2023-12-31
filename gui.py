@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHB
     QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, \
     QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox, QScrollArea
 from PyQt6.QtCore import pyqtSlot, QPoint
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPolygon
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPolygon, QPalette
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 import matplotlib.pyplot as plt
@@ -28,8 +28,7 @@ class MainWindow(QMainWindow):
 
         # DANE
 
-        self.circuit = None
-        self.circuit_name = ''
+        self.circuit_name = ""
         self.circuit_track_distance = 0
         self.circuit_no_laps = 0
         self.circuit_t_pit = 0.
@@ -62,20 +61,38 @@ class MainWindow(QMainWindow):
 
         # USTAWIENIA OKNA
 
-        self.resize(1200, 800)  # rozmiar
+        self.resize(800, 600)  # rozmiar
         self.setWindowTitle('Optymalizacja wyścigu')  # nazwa okna
 
-        tabs = QTabWidget()  # zakładki Konfiguracja, Rozwiązanie, Wykres
-        tabs.setTabPosition(QTabWidget.TabPosition.North)  # pozycja zakłedek
-        tabs.setMovable(False)  # przemieszczanie zakładek
+        tabs_scroll = QScrollArea(widgetResizable=True)
 
-        tabs.addTab(Config(self), 'Konfiguracja')  # dodanie zakładki Konfiguracja
-        tabs.addTab(Solution(self), 'Rozwiązanie')  # dodanie zakładki Arkusz
-        tabs.addTab(Chart(self), 'Wykres')  # dodanie zakładek Wykres
+        self.tabs = QTabWidget()  # zakładki Konfiguracja, Rozwiązanie, Wykres
+        self.tabs.setTabPosition(QTabWidget.TabPosition.North)  # pozycja zakłedek
+        self.tabs.setMovable(False)  # przemieszczanie zakładek
 
-        self.setCentralWidget(tabs)  # umieszczenie zakładek w oknie
+        self.config = Config(self)
+        self.solution = Solution(self)
+        self.chart = Chart(self)
+
+        self.tabs.addTab(self.config, 'Konfiguracja')  # dodanie zakładki Konfiguracja
+        self.tabs.addTab(self.solution, 'Rozwiązanie')  # dodanie zakładki Arkusz
+        self.tabs.addTab(self.chart, 'Wykres')  # dodanie zakładek Wykres
+
+        tabs_scroll.setWidget(self.tabs)
+
+        self.setCentralWidget(tabs_scroll)  # umieszczenie zakładek w oknie
 
         self.showMaximized()  # otwiera na pełnym ekranie
+
+    def resizeEvent(self, event):
+        new_size = event.size()
+        new_width = new_size.width()
+        new_height = new_size.height()
+
+        if new_width > 500:
+            self.config.setFixedWidth(new_width)
+        self.solution.setFixedWidth(new_width)
+        self.chart.setFixedWidth(new_width)
 
 
 # ZAKŁADKI
@@ -299,6 +316,8 @@ class Config(QWidget):
         """
         file_name = QFileDialog.getOpenFileName(self, filter="*.pkl")[0]  # nazwa pliku
         circuit = load_data(file_name)
+        if circuit is None:
+            return
         self.parent.circuit_name = circuit.name
         self.parent.circuit_track_distance = circuit.track_dist
         self.parent.circuit_no_laps = circuit.no_laps
@@ -422,21 +441,25 @@ class Config(QWidget):
         """
         Przekazanie danych do algorytmu i liczenie
         """
-        new_circuit = Circuit(self.parent.circuit_name, self.parent.circuit_track_distance, self.parent.circuit_no_laps,
-                              self.parent.circuit_t_pit, self.parent.circuit_tires)
+        if self.parent.circuit_name == "":
+            QMessageBox.warning(self, "Brak danych", "Najpierw załaduj dane w oknie Konfiguracja",
+                                buttons=QMessageBox.StandardButton.Ok)
+        else:
+            new_circuit = Circuit(self.parent.circuit_name, self.parent.circuit_track_distance, self.parent.circuit_no_laps,
+                                self.parent.circuit_t_pit, self.parent.circuit_tires)
 
-        solution = evolutionary_algorithm(self.parent.population_size, new_circuit, self.parent.iterations,
-                                          self.parent.parents_selected_num, self.parent.selection_type,
-                                          self.parent.cross_method, self.parent.cross_probability,
-                                          self.parent.mutate_aggression,
-                                          self.parent.mutate_aggression_probability, self.parent.mutate_compound,
-                                          self.parent.mutate_compound_probability, self.parent.mutate_pitstop,
-                                          self.parent.mutate_pitstop_probability)
-        self.parent.time = solution[0]
-        self.parent.total_iterations_num = solution[1]
-        self.parent.best_individual = solution[2]
-        self.parent.best_iteration = solution[3]
-        self.parent.best_individuals = solution[4]
+            solution = evolutionary_algorithm(self.parent.population_size, new_circuit, self.parent.iterations,
+                                            self.parent.parents_selected_num, self.parent.selection_type,
+                                            self.parent.cross_method, self.parent.cross_probability,
+                                            self.parent.mutate_aggression,
+                                            self.parent.mutate_aggression_probability, self.parent.mutate_compound,
+                                            self.parent.mutate_compound_probability, self.parent.mutate_pitstop,
+                                            self.parent.mutate_pitstop_probability)
+            self.parent.time = solution[0]
+            self.parent.total_iterations_num = solution[1]
+            self.parent.best_individual = solution[2]
+            self.parent.best_iteration = solution[3]
+            self.parent.best_individuals = solution[4]
 
     @pyqtSlot()
     def add(self) -> None:
@@ -503,9 +526,8 @@ class Solution(QWidget):
 
         self.parent = parent  # wskaźnik na rodzica
 
-        self.scroll_area = QScrollArea()
         self.label = QLabel()
-        self.canvas = QPixmap(1900, 900)
+        self.canvas = QPixmap(1800, 900)
         self.canvas.fill(QColor("white"))
         self.label.setPixmap(self.canvas)
 
@@ -515,8 +537,7 @@ class Solution(QWidget):
         layout_main = QVBoxLayout()  # układ główny
 
         # USTAWIENIA UKŁADU
-        self.scroll_area.setWidget(self.label)
-        layout_main.addWidget(self.scroll_area)
+        layout_main.addWidget(self.label)
         layout_main.addWidget(self.button)
         self.setLayout(layout_main)
 
@@ -525,6 +546,14 @@ class Solution(QWidget):
         Rysowanie odpowiedzi
         :return: None
         """
+        if self.parent.best_individual is None:
+            QMessageBox.warning(self, "Brak danych", "Najpierw uruchom algorytm ewolucyjny w zakładce Konfiguracja",
+                                buttons=QMessageBox.StandardButton.Ok)
+            return
+        
+        self.canvas = QPixmap(1900, 900)
+        self.canvas.fill(QColor("white"))
+        self.label.setPixmap(self.canvas)
         with QPainter(self.canvas) as painter:
             painter_font = QFont()
             painter_font.setPixelSize(20)
@@ -572,7 +601,6 @@ class Solution(QWidget):
             hours = int(solution.fitness / 60)
             minutes = int(solution.fitness % 60)
             seconds = (solution.fitness * 60) % 60
-            print(solution.fitness, hours, minutes, seconds)
             painter.drawText(w + 1000, h, "Najlepsze rozwiązanie: {} h {} min {:.3f} s".format(hours, minutes, seconds))
 
             h += 50
@@ -587,6 +615,21 @@ class Solution(QWidget):
             painter.drawText(w + 40, h, "- rodzaj mieszanki, gdzie czerwony to miękka, żółty to pośredna, szary to twarda")
 
             painter.drawText(w + 1000, h, "Rozwiązanie znalezione w iteracji: {}".format(self.parent.best_iteration))
+
+            h += 50
+            triangle = QPolygon()
+            triangle << QPoint(w + 5, h + 10) << QPoint(w - 15, h - 25) << QPoint(w + 25, h - 25)
+            painter.drawConvexPolygon(triangle)
+            painter.drawText(w, h - 5, "P")
+            painter.drawText(w + 40, h, "- znacznik miejsca, w którym wykonywany jest pit stop")
+
+            try:
+                starting_solution = self.parent.best_individuals[0].fitness
+                minutes = int(solution.fitness - starting_solution)
+                seconds = ((solution.fitness - starting_solution) * 60) % 60
+                painter.drawText(w + 1000, h, "Poprawa od populacji startowej: {} min {:.3f} s".format(minutes, seconds))
+            except OverflowError:
+                painter.drawText(w + 1000, h, "Poprawa od populacji startowej: inf")
 
         self.label.setPixmap(self.canvas)
 
@@ -621,15 +664,20 @@ class Chart(QWidget):
         Rysowanie wykresu
         :return: None
         """
-        self.figure.clear()
-        ax = self.figure.add_subplot()
-        ax.clear()
-        ax.step([i for i in range(self.parent.total_iterations_num + 1)], [individual.fitness for individual in self.parent.best_individuals])
-        ax.step([i for i in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)],
-                [self.parent.best_individual.fitness for _ in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)])
-        ax.set(xlabel="Liczba iteracji", ylabel="Wartość funkcji celu",
-               title="Wartość funkcji celu od liczby iteracji", xlim=[0, self.parent.total_iterations_num])
-        self.canvas.draw()
+        if self.parent.best_individual is None:
+            QMessageBox.warning(self, "Brak danych", "Najpierw uruchom algorytm ewolucyjny w zakładce Konfiguracja",
+                                buttons=QMessageBox.StandardButton.Ok)
+        else:
+            self.figure.clear()
+            ax = self.figure.add_subplot()
+            ax.clear()
+            ax.step([i for i in range(self.parent.total_iterations_num + 1)], [individual.fitness for individual in self.parent.best_individuals])
+            ax.step([i for i in range(self.parent.best_iteration)], [min(self.parent.best_individuals[:i + 1], key=lambda x: x.fitness).fitness for i in range(self.parent.best_iteration)])
+            ax.step([i for i in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)],
+                    [self.parent.best_individual.fitness for _ in range(self.parent.best_iteration, self.parent.total_iterations_num + 1)])
+            ax.set(xlabel="Liczba iteracji", ylabel="Wartość funkcji celu",
+                title="Wartość funkcji celu od liczby iteracji", xlim=[0, self.parent.total_iterations_num])
+            self.canvas.draw()
 
 
 # DODANIE OPONY DO ZAKŁADKI CONFIG
