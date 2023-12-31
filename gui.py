@@ -526,8 +526,9 @@ class Solution(QWidget):
 
         self.parent = parent  # wskaźnik na rodzica
 
+        self.scroll_solution = QScrollArea()
         self.label = QLabel()
-        self.canvas = QPixmap(1800, 900)
+        self.canvas = QPixmap(1900, 900)
         self.canvas.fill(QColor("white"))
         self.label.setPixmap(self.canvas)
 
@@ -537,7 +538,8 @@ class Solution(QWidget):
         layout_main = QVBoxLayout()  # układ główny
 
         # USTAWIENIA UKŁADU
-        layout_main.addWidget(self.label)
+        self.scroll_solution.setWidget(self.label)
+        layout_main.addWidget(self.scroll_solution)
         layout_main.addWidget(self.button)
         self.setLayout(layout_main)
 
@@ -554,6 +556,7 @@ class Solution(QWidget):
         self.canvas = QPixmap(1900, 900)
         self.canvas.fill(QColor("white"))
         self.label.setPixmap(self.canvas)
+        self.scroll_solution.setWidget(self.label)
         with QPainter(self.canvas) as painter:
             painter_font = QFont()
             painter_font.setPixelSize(20)

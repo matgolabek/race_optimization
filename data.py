@@ -45,9 +45,19 @@ class Tire:
 
     def __repr__(self) -> str:
         if self.n < self.max_laps:
-            return '{} laps on {} tires ({})\n'.format(self.n, self.compound.name, self.aggression)
+            if self.compound == Compound.SOFT:
+                return '{} okrążeń na miękkich oponach z agresją: {}\n'.format(self.n, self.aggression)
+            elif self.compound == Compound.MEDIUM:
+                return '{} okrążeń na pośrednich oponach z agresją: {}\n'.format(self.n, self.aggression)
+            elif self.compound == Compound.HARD:
+                return '{} okrążeń na twardych oponach z agresją: {}\n'.format(self.n, self.aggression)
         else:
-            return 'DAMAGED {} tires after {} laps ({})\n'.format(self.compound.name, self.n - 1, self.aggression[:-1])
+            if self.compound == Compound.SOFT:
+                return 'Uszkodzone miękkie opony po {} okrążeniach z agresją: {}\n'.format(self.n - 1, self.aggression[:-1])
+            elif self.compound == Compound.MEDIUM:
+                return 'Uszkodzone pośrednie opony po {} okrążeniach z agresją: {}\n'.format(self.n - 1, self.aggression[:-1])
+            elif self.compound == Compound.HARD:
+                return 'Uszkodzone twarde opony po {} okrążeniach z agresją: {}\n'.format(self.n - 1, self.aggression[:-1])
 
     def lap_completed(self, aggression: Aggression) -> float:
         """
