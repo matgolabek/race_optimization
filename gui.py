@@ -215,7 +215,7 @@ class Config(QWidget):
         radio2 = QRadioButton("Jednopunktowe losowo")
         radio3 = QRadioButton("Przed pitstopem")
         radio4 = QRadioButton("Tylko agresja")
-        radio5 = QRadioButton("Dwupunktowe losowo")
+        radio5 = QRadioButton("Tylko pitstop")
         radio_all = [radio1, radio2, radio3, radio4, radio5]
         for button in radio_all:
             button.toggled.connect(lambda state, toggled_button=button: self.set_cross_method(toggled_button))
@@ -388,7 +388,7 @@ class Config(QWidget):
             self.parent.cross_method = 2
         elif toggled_button.text() == "Tylko agresja":
             self.parent.cross_method = 3
-        elif toggled_button.text() == "Dwupunktowe losowo":
+        elif toggled_button.text() == "Tylko pitstop":
             self.parent.cross_method = 4
 
     def set_cross_probability(self, value_from_spinbox):

@@ -69,7 +69,7 @@ def evolutionary_algorithm(start_size: int, circuit: Circuit, max_iter: int, par
             elif cross_type == 2:
                 cross_before_pit(P_prev, 2)
             elif cross_type == 3:
-                cross_agression(P_prev, True)
+                cross_agression(P_prev)
             elif cross_type == 4:
                 cross_pit(P_prev)
             else: 

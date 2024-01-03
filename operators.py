@@ -47,7 +47,7 @@ def mutate_pit(population: NextPopulation, probability: float = 0.05) -> None:
                             individual.list_of_laps[i+1].compound = new_compund
                             i+=1
                 else:
-                    pass
+                    gene.pit = Pit.YES
         individual.update_fitness(copy.deepcopy(population.circuit))
 
 def mutate_compound(population: NextPopulation, probability: float = 0.05) -> None:
