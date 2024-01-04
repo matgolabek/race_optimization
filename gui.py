@@ -625,12 +625,9 @@ class Solution(QWidget):
 
             try:
                 starting_solution = self.parent.best_individuals[0].fitness
-                if solution.fitness - starting_solution >= 0:
-                    minutes = int(solution.fitness - starting_solution)
-                    seconds = ((solution.fitness - starting_solution) * 60) % 60
-                else:
-                    minutes = 0
-                    seconds = 0
+                diff = starting_solution - solution.fitness
+                minutes = int(diff)
+                seconds = (diff * 60) % 60               
                 painter.drawText(w + 1000, h, "Poprawa od populacji startowej: {} min {:.3f} s".format(minutes, seconds))
             except OverflowError:
                 painter.drawText(w + 1000, h, "Poprawa od populacji startowej: inf")
