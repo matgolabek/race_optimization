@@ -41,7 +41,7 @@ class Individual:
 # populacja startowa
 class NextPopulation:
 
-    def __init__(self, individuals: List[Individual],c: Circuit):
+    def __init__(self, individuals: list[Individual],c: Circuit):
 
         self.individuals = individuals   # lista osobników
         self.picked_parents = []    # lista rodziców wybieranych z osobników

@@ -1,4 +1,3 @@
-from typing import List
 from enum import Enum
 from math import exp
 import pickle
@@ -104,7 +103,7 @@ class Tire:
 
 
 class Circuit:
-    def __init__(self, name: str, track_dist: int, no_laps: int, t_pit: float, tires: List[Tire]):
+    def __init__(self, name: str, track_dist: int, no_laps: int, t_pit: float, tires: list[Tire]):
         """
         Tor
         :param name: (str) : nazwa toru (miasto)
@@ -124,7 +123,7 @@ class Circuit:
                + 'No. laps: {}\n'.format(self.no_laps) + 'Pit stop time: {} s\n'.format(self.t_pit)\
                + 'Available tires: {}'.format(self.tires)
 
-    def get_tires(self) -> List[List[Tire]]:
+    def get_tires(self) -> list[list[Tire]]:
         """
         Metoda zwracająca posortowane komplety opon.
         Pod indeksem 0: lista opon miękkich

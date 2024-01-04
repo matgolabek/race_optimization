@@ -1,7 +1,6 @@
 import random
 from data import *
-from population import NextPopulation,Individual,PartialIndividual
-from typing import Union
+from population import NextPopulation, Individual, PartialIndividual
 import copy
 
 #Operatory mutacji:
@@ -288,7 +287,7 @@ def pick_parents_roulette(population: NextPopulation, m: int, equal_chances: boo
             sum_fitness -= picked_individual.fitness
             population.picked_parents.append(picked_individual)
 
-def adjust_population(population: NextPopulation, best_ancestors: bool = False, elitist: List[Individual] = []) -> None:
+def adjust_population(population: NextPopulation, best_ancestors: bool = False, elitist: list[Individual] = []) -> None:
     """
     Funkcja uzupełniająca rozmiar populacji
     :param population: NextPopulation : populacja
@@ -319,7 +318,7 @@ def adjust_population(population: NextPopulation, best_ancestors: bool = False, 
             random_idx = random.randint(0, len(population.individuals))
             population.new_individuals.append(population.individuals.pop(random_idx))
 
-def elitist_selection(population: NextPopulation, n: int = 5) -> List[Individual]:
+def elitist_selection(population: NextPopulation, n: int = 5) -> list[Individual]:
     """
     Wybranie jakiejś małej grupy osobników, która przechodzi od razu do następnej populacji, czyli
     1. wybór tych kilku najlepszych

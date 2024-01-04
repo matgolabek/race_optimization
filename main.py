@@ -1,15 +1,19 @@
-from data import *
+from gui import MainWindow
 import sys
-from population import *
-from typing import List
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, \
-    QFileDialog, QComboBox, QTableWidget, QTableWidgetItem, QTabWidget, QLabel, QPushButton, QDialog, QDialogButtonBox
-from PyQt6.QtGui import QFont
-from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 
 def main():
-    pass
+    app = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+
+    try:
+        app.exec()
+    except Exception:
+        QMessageBox.critical(window, "Krytyczny błąd", "Aplikacja napotkała straszny błąd",
+                             buttons=QMessageBox.StandardButton.Abort)
 
 
 if __name__ == '__main__':

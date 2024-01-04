@@ -1,7 +1,4 @@
-from data import *
-import sys
 from population import *
-from typing import List, Any
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QFormLayout, \
     QFileDialog, QComboBox, QLineEdit, QGroupBox, QTabWidget, QLabel, QPushButton, QDialog, \
     QDoubleSpinBox, QSpinBox, QListWidget, QGridLayout, QRadioButton, QCheckBox, QScrollArea
@@ -628,8 +625,12 @@ class Solution(QWidget):
 
             try:
                 starting_solution = self.parent.best_individuals[0].fitness
-                minutes = int(solution.fitness - starting_solution)
-                seconds = ((solution.fitness - starting_solution) * 60) % 60
+                if solution.fitness - starting_solution >= 0:
+                    minutes = int(solution.fitness - starting_solution)
+                    seconds = ((solution.fitness - starting_solution) * 60) % 60
+                else:
+                    minutes = 0
+                    seconds = 0
                 painter.drawText(w + 1000, h, "Poprawa od populacji startowej: {} min {:.3f} s".format(minutes, seconds))
             except OverflowError:
                 painter.drawText(w + 1000, h, "Poprawa od populacji startowej: inf")
@@ -686,7 +687,7 @@ class Chart(QWidget):
 # DODANIE OPONY DO ZAKŁADKI CONFIG
 
 class AddDialog(QDialog):
-    def __init__(self, parent: QWidget, params: List[Any], is_edit: bool = False) -> None:
+    def __init__(self, parent: QWidget, params, is_edit: bool = False) -> None:
         super().__init__(parent)
 
         self.params = params
@@ -861,20 +862,3 @@ class AddDialog(QDialog):
         :return: None
         """
         self.params[10] = a4
-
-
-def main():
-    app = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
-    try:
-        app.exec()
-    except Exception:
-        QMessageBox.critical(window, "Krytyczny błąd", "Aplikacja napotkała straszny błąd",
-                             buttons=QMessageBox.StandardButton.Abort)
-
-
-if __name__ == "__main__":
-    main()
