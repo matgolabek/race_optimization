@@ -81,6 +81,10 @@ def cross(population: NextPopulation, random_division_point: bool = False) -> No
     :return: None
     """
     while population.picked_parents:
+
+        if len(population.picked_parents) == 1:
+            break
+
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
         inx = random.randint(0, len(population.picked_parents) - 1)
@@ -103,6 +107,7 @@ def cross(population: NextPopulation, random_division_point: bool = False) -> No
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
 
+
 def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bool = False) -> None:
     """
     Krzyżowanie przed zadanym pit stopem losowego osobnika lub lepszego, gdy nie znajdzie pit sotpu to wylosuje punkt krzyżowania
@@ -112,6 +117,10 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
     :return: None
     """
     while population.picked_parents:
+
+        if len(population.picked_parents) == 1:
+            break
+
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
         inx = random.randint(0, len(population.picked_parents) - 1)
@@ -143,6 +152,7 @@ def cross_before_pit(population: NextPopulation, no_pit: int = 1, best_first: bo
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
 
+
 def cross_agression(population: NextPopulation, random_division_point: bool = False) -> None:
     """
     Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
@@ -151,6 +161,10 @@ def cross_agression(population: NextPopulation, random_division_point: bool = Fa
     :return: None
     """
     while population.picked_parents:
+
+        if len(population.picked_parents) == 1:
+            break
+
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
         inx = random.randint(0, len(population.picked_parents) - 1)
@@ -178,6 +192,7 @@ def cross_agression(population: NextPopulation, random_division_point: bool = Fa
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
 
+
 def cross_2_points(population: NextPopulation) -> None:
     """
     2 losowe punkty krzyżowania
@@ -186,6 +201,10 @@ def cross_2_points(population: NextPopulation) -> None:
     """
 
     while population.picked_parents:
+
+        if len(population.picked_parents) == 1:
+            break
+
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
         inx = random.randint(0, len(population.picked_parents) - 1)
@@ -206,6 +225,7 @@ def cross_2_points(population: NextPopulation) -> None:
         population.new_individuals.append(child1)
         population.new_individuals.append(child2)
 
+
 def cross_pit(population: NextPopulation, random_division_point: bool = False) -> None:
     """
     Krzyżowanie samej agresji z domyślnym punktem podziału w środku osobnika lub w losowo wybranym
@@ -214,6 +234,10 @@ def cross_pit(population: NextPopulation, random_division_point: bool = False) -
     :return: None
     """
     while population.picked_parents:
+
+        if len(population.picked_parents) == 1:
+            break
+
         inx = random.randint(0, len(population.picked_parents) - 1)
         parent1 = population.picked_parents.pop(inx)
         inx = random.randint(0, len(population.picked_parents) - 1)
